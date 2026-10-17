@@ -272,7 +272,7 @@
             }
 
             $("source").textContent = data.source;
-            $("preview").src = "/preview?site=" + encodeURIComponent(data.site);
+            $("preview").src = "https://susorbus.vercel.app/api/preview?site=" + encodeURIComponent(data.site);
 
             $("findings").replaceChildren(...data.findings.map(renderFinding));
         }
@@ -282,7 +282,7 @@
             if (!site) { $("status").textContent = "Type a website first."; return; }
             $("status").textContent = "Analyzing " + site + " ...";
             $("result").classList.add("hidden");
-            const res = await fetch("/check?site=" + encodeURIComponent(site));
+            const res = await fetch("https://susorbus.vercel.app/api/check?site=" + encodeURIComponent(site));
             const data = await res.json();
             $("status").textContent = "";
             if (data.error) { $("status").textContent = data.error; return; }
