@@ -1,0 +1,581 @@
+SUS OR BUS — COMPLETE WALKTHROUGH (written for a beginner, Oct 2026)
+====================================================================
+
+This file explains every function in the project, why it exists, and how
+the pieces fit together. Read it top to bottom once, then use it as a
+reference. Terms are explained the first time they appear.
+
+If any section is confusing, ask about that exact section — that's the
+point of this file.
+
+
+--------------------------------------------------------------------------------
+PART 0: THE BIG PICTURE
+--------------------------------------------------------------------------------
+
+"Sus or Bus" is a website safety checker. A user pastes a link, the app
+fetches that site's HTML, analyzes it, and shows:
+  1. a score 0–100 and a verdict (BUS / MILDLY SUS / SUS)
+  2. a list of "findings" (good things, warnings, bad things)
+  3. terms & privacy policy check results
+  4. the site's source code
+  5. a live preview of the site inside an iframe
+
+There are TWO halves:
+
+  FRONTEND = the code that runs in the user's browser (index.html).
+             It draws the page and calls the backend over the internet.
+
+  BACKEND  = the code that runs on a server (server.js locally, or the
+             deployed files in api/ on Vercel). It fetches other people's
+             websites, analyzes them, and sends results back as JSON.
+
+When you click "Check", this is the full journey of one check:
+
+  browser (index.html)
+    -> fetch("https://susorbus.vercel.app/api/check?site=example.com")
+    -> Vercel runs api/check.js
+    -> api/check.js calls fetchPage("https://example.com")   (lib/site.js)
+    -> lib/site.js makes an HTTPS request to example.com
+    -> example.com sends back HTML
+    -> analyze() scans the HTML for risky things
+    -> extractPolicyLinks() looks for terms/privacy links, each is fetched
+    -> a score is computed, everything is packed into JSON and returned
+    -> browser receives the JSON
+    -> render() draws verdict, score, counts, findings, source code
+    -> render() then asks for the preview:
+         fetch(".../api/preview?site=example.com")
+       and either embeds the iframe OR (new!) shows the overlay message
+
+
+--------------------------------------------------------------------------------
+PART 1: CONCEPTS YOU NEED BEFORE THE CODE
+--------------------------------------------------------------------------------
+
+HTTP STATUS CODES
+  Every HTTP response starts with a 3-digit code:
+    200 = OK, here is your content
+    204 = OK, no content (used to answer CORS preflight, see below)
+    301/302/307/308 = redirect: "ask this other URL instead"
+    400 = you (the caller) made a bad request
+    405 = wrong method (e.g. POST when only GET is allowed)
+    409 = CONFLICT — "the thing you asked for conflicts with its own rules".
+          We (ab)use 409 in the new preview code to mean:
+          "this site refuses to be embedded". Any uncommon code works;
+          409 just reads well and never collides with the codes the
+          preview route already uses.
+    429 = too many requests (rate limiting)
+    502 = my server talked to an upstream server and the upstream failed
+
+JSON
+  JavaScript Object Notation — a text format for data:
+    { "score": 80, "verdict": "BUS", "findings": [ ... ] }
+  Browsers and servers exchange JSON over HTTP constantly. In JS:
+    JSON.stringify(obj)  -> turns an object into JSON text
+    response.json()      -> parses JSON text back into an object
+
+QUERY STRING + encodeURIComponent
+  URLs can carry data:  /api/check?site=example.com
+  The part after ? is the query string. If the value itself contains
+  characters like & or ? or spaces, the URL would break, so we wrap it:
+    encodeURIComponent("a&b")  ->  "a%26b"
+  That is why every fetch URL in index.html is built as
+    "...?site=" + encodeURIComponent(site)
+
+ASYNC / AWAIT
+  Network requests take time. JS refuses to freeze the whole page while
+  waiting, so fetch() returns a PROMISE — an "IOU" for a result later.
+    const res = await fetch(url)
+  `await` means: pause THIS function until the promise settles, then give
+  me the value. A function that uses await must be marked `async`.
+  The new preview code made render() async for exactly this reason.
+
+CORS (Cross-Origin Resource Sharing)
+  A security rule: code on page A may not read responses from server B
+  unless B explicitly allows it. Your frontend is hosted at
+  tejusbhasin.github.io; the API is at susorbus.vercel.app — different
+  origins. That's why api/*.js set this header:
+    Access-Control-Allow-Origin: https://tejusbhasin.github.io
+  PREFLIGHT: for anything but a plain GET, the browser first sends an
+  OPTIONS request asking "may I?" — the server answers 204 with the
+  allowed methods/headers, and only then the real request goes out.
+
+THE SAME-ORIGIN POLICY (why the preview detection lives on the server)
+  An iframe loading another site is a sealed box. Your page CANNOT:
+    - read the iframe's DOM (document inside it), or
+    - draw it onto a <canvas> and sample pixel colors (the canvas becomes
+      "tainted" and the browser throws a security error).
+  So JavaScript can never look at the preview and say "that looks like a
+  solid color". BUT we know WHY the solid color happens: the target site
+  sent anti-embedding headers. Our server fetches the target's headers
+  anyway, so it can detect the cause and just TELL the frontend.
+  Lesson that generalizes: when the browser won't let you do something
+  for security reasons, do it on the server, which has no such limits.
+
+X-FRAME-OPTIONS and CSP frame-ancestors (the two headers we check)
+  These are response headers a website can send to say "nobody may show
+  me inside an iframe":
+    X-Frame-Options: DENY        -> never embed
+    X-Frame-Options: SAMEORIGIN  -> only my own origin may embed
+    Content-Security-Policy: frame-ancestors 'none'   -> never embed
+    Content-Security-Policy: frame-ancestors 'self'   -> only same origin
+  When a browser loads such a site in an iframe it renders NOTHING —
+  you just see the iframe element's own background. Your CSS sets that
+  to white (#fff), which is the "complete 1-color screen" you noticed.
+
+REGULAR EXPRESSIONS (regex)
+  Patterns for matching text. Used in the new code:
+    /deny|sameorigin/i     means: the text "deny" OR "sameorigin",
+                           case-insensitive (the /i flag)
+    /frame-ancestors/i     means: the literal text "frame-ancestors"
+  .test(str) returns true/false.
+
+DOM FACTS USED BY THE NEW FEATURE
+  - An element can only exist in ONE place in the document. Appending an
+    element that is already in the page MOVES it:
+        parent.appendChild(existingElement)   // relocates, not copies
+    This is how "move the preview section to the bottom" works in 1 line.
+  - classList.add/remove("show") toggles the overlay by adding/removing
+    a CSS class — the standard way to switch styling from JS.
+  - CSS position: relative on a parent + position: absolute on a child
+    pins the child to cover the parent (with inset: 0 = all four edges).
+    That's the overlay trick: the overlay sits on top of the iframe.
+  - z-stacking: elements later in the HTML paint on top, so the overlay
+    div after the iframe covers it. display: none hides it until needed.
+
+
+--------------------------------------------------------------------------------
+PART 2: index.html — THE FRONTEND, FUNCTION BY FUNCTION
+--------------------------------------------------------------------------------
+
+The file has 3 parts: HTML skeleton (what exists), CSS (how it looks),
+and a <script> (what it does).
+
+CSS — relevant pieces
+  .hidden { display: none; }        hides the results until data arrives
+  .preview-wrap { position: relative; }          (NEW) reference box
+  .preview-overlay {                  (NEW) the black cover
+      position: absolute; inset: 0;  -> stretch to cover the wrap box
+      display: none;                 -> invisible until .show is added
+      align-items: center; justify-content: center;  -> centered text
+      background: #000; color: #fff; ... }
+  .preview-overlay.show { display: flex; }   (NEW) the switch that shows it
+  Why black? The blocked iframe shows YOUR OWN iframe background (#fff,
+  line ~152). Opposite of white on the color wheel is black. If you ever
+  want a generic "opposite color", convert the color to HSL and rotate
+  the hue 180 degrees:  h' = (h + 180) % 360.
+
+HTML — the preview section (changed from 4 lines to 7)
+  <section id="previewSection">          <- id so JS can grab + move it
+      <h2>preview</h2>
+      <div class="preview-wrap">         <- relative box
+          <iframe id="preview"></iframe>
+          <div id="previewOverlay"       <- absolute cover, hidden
+               class="preview-overlay">This site doesn't currently
+               support embedded previews</div>
+      </div>
+  </section>
+  Because the overlay comes AFTER the iframe in the HTML, it paints on
+  top of it.
+
+JS helper:   const $ = id => document.getElementById(id);
+  Arrow function. Shorthand for "given an id string, return the element
+  with that id". Every $("preview") etc. is just a short getElementById.
+  Why: you type it dozens of times per page.
+
+JS helper:   function el(tag, cls, text)
+  Factory for a new DOM element:
+    - document.createElement(tag) makes it (e.g. a <div>)
+    - if cls was given, assigns it as the CSS class
+    - if text was given, sets it as textContent — the SAFE way to insert
+      text (it can never be interpreted as HTML, so it's injection-proof)
+  Used by renderFinding() to build finding cards.
+
+JS:   function scoreClass(score)
+  score >= 70 -> "bus"     (green)
+  score >= 40 -> "mid"     (orange)
+  otherwise   -> "sus"     (red)
+  Called a "ternary chain". Returns the CSS class name used to color the
+  verdict, the big number, and the progress bar.
+
+JS:   function renderFinding(f)
+  Builds one finding card. f is an object like
+    { level: "warning", category: "content", title, simple, nerd }
+  Steps:
+    1. el("div", "finding " + f.level)  -> outer box with 2 classes,
+       e.g. class="finding warning" (CSS colors the left border by level)
+    2. builds the header row: BADGE text (level in caps) + category pill
+    3. appends title, the simple explanation (<p class="simple-text">),
+       and the nerd explanation (<p class="nerd-text">)
+  The simple/nerd swap is pure CSS: body.nerd .nerd-text {display:block}
+  and body.nerd .simple-text {display:none} — the "nerd mode" button just
+  toggles the body class.
+
+JS:   async function render(data)          (line ~261, now async)
+  THE core frontend function. data is the parsed JSON from /api/check.
+  Walk through what it does, line group by line group:
+    $("result").classList.remove("hidden")   -> show the results card
+    scoreClass -> colors for verdict + big score number
+    $("meta")... builds the "url • date • HTTP status" line
+    counts -> the 3 number boxes (good/warning/bad)
+    bar fill -> width % = score, color = class
+    termsBox -> one renderFinding per terms finding, plus policy URLs,
+                or "No terms or privacy links detected..." if none
+    $("source").textContent = data.source    -> the raw HTML in <pre>
+    THEN the preview logic (see next section)
+    $("findings").replaceChildren(...)       -> finding cards; note
+       replaceChildren: swaps all children in one shot, no leftovers
+
+JS (NEW): the preview block inside render(), lines ~296-300
+      const pUrl = "https://susorbus.vercel.app/api/preview?site=" + encodeURIComponent(data.site);
+      const pr = await fetch(pUrl);
+      if (pr.status === 409) showUnsupportedPreview();
+      else { $("previewOverlay").classList.remove("show"); $("preview").src = pUrl; }
+  Line by line:
+    1. Build the preview URL. NOTE: this still points at the DEPLOYED API.
+       For local testing, swap it to "http://127.0.0.1:3000/preview?site=".
+    2. fetch it. We don't actually want the body — we want the STATUS.
+       This works because our own server sets CORS headers for the
+       allowed origin, and response.status is always readable.
+    3. 409 = the server detected anti-embedding headers -> show overlay.
+    4. Otherwise hide the overlay (clears any leftover from a previous
+       check) and point the iframe at the URL for a normal preview.
+  Why check status instead of parsing the JSON body? Simplicity: 409 only
+  ever means "not embeddable", and reading status never throws even when
+  the body is HTML. Fewer ways to break.
+
+JS (NEW):   function showUnsupportedPreview()     (lines ~303-306)
+      $("result").appendChild($("previewSection"));
+      $("previewOverlay").classList.add("show");
+  - appendChild on an element that is already in the document MOVES it.
+    $("result") is the whole results card; appending the preview section
+    puts it after "the breakdown" = the bottom. One line, no libraries.
+  - adding .show flips the overlay's display from none to flex.
+  Note what this deliberately does NOT do: destroy the iframe or its
+  section. If the user runs another check, the else-branch in render()
+  removes .show and previews normally again. (One cosmetic quirk you can
+  fix later: once moved, the section stays at the bottom even for sites
+    that DO embed. Moving it back = insertBefore into the original spot.)
+
+JS:   async function check()
+  Triggered by the button or Enter key:
+    1. read + trim the input; complain if empty
+    2. status text "Analyzing..."; hide old results
+    3. await fetch(".../api/check?site=...")  -> res.json()
+    4. if data.error, show it and stop
+    5. otherwise call render(data)
+  Note: check() calls render(data) without await — that's fine. render
+  runs on its own schedule; the page is already responsive.
+
+Event listeners (bottom of the script)
+  modeBtn click -> toggles "nerd" class on <body>; CSS does the swapping
+  Enter key in the input -> runs check()
+
+
+--------------------------------------------------------------------------------
+PART 3: server.js — YOUR LOCAL BACKEND, FUNCTION BY FUNCTION
+--------------------------------------------------------------------------------
+
+This is the learning version of the backend: plain Node, no framework.
+Node's built-in http server gives you (req, res) and you route by hand.
+
+const SOURCE_LIMIT = 20000;
+  The frontend only displays the first 20,000 characters of fetched HTML.
+  Sending megabytes of HTML to a browser for display would be slow.
+
+function cleanTarget(raw)
+  Turns whatever the user typed into a bare hostname:
+    trim spaces
+    .replace(/^https?:\/\//i, "")  strip "http://" or "https://" if present
+    .replace(/\/.*$/, "")          strip everything from the first "/"
+    .toLowerCase()
+    .test(/^[a-z0-9.-]+$/)         reject anything with weird characters
+  Returns "" if it doesn't look like a host. Security habit: never use
+  user input directly — normalize and validate first.
+
+function isBlockedHost(host)
+  Stops the server from fetching PRIVATE addresses (localhost, 127.x,
+  10.x, 192.168.x, 172.16-31.x) — the internal ranges machines use for
+  themselves. Without this, someone could ask your server to fetch its
+  own internal pages and read secrets ("SSRF" — Server-Side Request
+  Forgery). Also blocks ":" (ports) and "@" (userinfo tricks).
+
+async function fetchPage(url)
+  Uses Node 18+'s built-in fetch() to GET the URL:
+    redirect: "follow"          follow up to 5 redirects automatically
+    AbortSignal.timeout(10000)  give up after 10 seconds (a hung site
+                                would otherwise hold your server forever)
+    a browser-like User-Agent    many sites refuse requests with no UA
+  Returns { r, html }: the whole Response object (we need its headers
+  now!) and the text body.
+
+function analyze(html, host, finalUrl)
+  The safety scanner. html.toLowerCase() once (cheaper than lowercasing
+  in every test). Each check pushes a finding object:
+    HTTPS            finalUrl starts with https: ?
+    password input   /<input[^>]+type=["']password["']/i  -> phishing bait
+    scam keywords    ["urgent","winner","congratulations","verify your
+                     account","bitcoin","free money","click here to claim"]
+                     any substring hit -> bad
+    <form>           collects user data -> warning
+    <iframe>         embeds third-party content -> warning
+    script count     0 -> good; >15 -> warning (heavy scripting)
+    domain shape     raw IP -> bad; free TLD (.tk/.ml/.ga/.cf/.gq),
+                     2+ hyphens, or >30 chars -> warning; else good
+  Each finding carries BOTH a `simple` (plain English) and `nerd`
+  (technical) explanation — that's what nerd mode toggles.
+
+function extractPolicyLinks(html, base)
+  Finds <a> tags:  /<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi
+    gi = global (find all) + case-insensitive
+    ([^"']+)  captures the href
+    ([\s\S]*?) captures the link text (non-greedy)
+  For each link: strip tags from the text, combine href+text lowercase,
+  look for terms|conditions|tos  and  privacy|data policy keywords.
+  new URL(m[1], base) resolves relative links ("/privacy") against the
+  page's URL. Stops early once both are found.
+
+async function checkPolicy(url)
+  Actually fetches the policy page: ok = HTTP success AND more than 400
+  characters of content. A link that 404s or returns an empty page is a
+  finding by itself.
+
+function buildTermsFindings(policies)
+  No policies found -> one warning ("legitimate sites usually show these").
+  Otherwise one good/warning finding per policy depending on checkPolicy.
+
+The server itself: http.createServer(async (req, res) => { ... })
+  url = new URL(req.url, "http://x") parses path + query string.
+
+  Route "/": reads index.html from disk and serves it. That's why you
+  open http://127.0.0.1:3000 and see the page.
+
+  Route "/check":
+    1. cleanTarget + isBlockedHost on the ?site= value
+    2. fetchPage("https://" + target)
+    3. analyze() on the HTML
+    4. extractPolicyLinks(); fetch each found policy with checkPolicy()
+    5. count levels: for (const f of findings.concat(termsFindings)) counts[f.level]++
+    6. score = max(0, 100 - bad*30 - warning*10)
+       (a site with 4 bad findings bottoms out at 0)
+    7. verdict = >=70 BUS, >=40 MILDLY SUS, else SUS
+    8. send one JSON object with everything, source truncated to
+       SOURCE_LIMIT characters
+    Any throw -> JSON { error: "Could not check ... (reason)" }.
+
+  Route "/preview"  (THIS IS WHERE OUR NEW CODE LIVES)
+        const { r, html } = await fetchPage("https://" + target);
+    We now keep r — the Response object — because the HEADERS matter:
+        const xfo = r.headers.get("x-frame-options") || "";
+        const csp = r.headers.get("content-security-policy") || "";
+    || "" means "if the header is missing, use empty string" so .test()
+    never sees null.
+        if (/deny|sameorigin/i.test(xfo) || /frame-ancestors/i.test(csp)) {
+            res.statusCode = 409;
+            res.setHeader("Content-Type", "application/json");
+            return res.end(JSON.stringify({ embeddable: false }));
+        }
+    - If X-Frame-Options says DENY or SAMEORIGIN  -> blocked.
+    - If ANY CSP contains frame-ancestors          -> blocked.
+      (Strictly, frame-ancestors could list allowed sites rather than
+      'none'/'self'; we treat its mere presence as blocked. Simple,
+      slightly over-cautious — fine for v1.)
+    - 409 + {"embeddable":false} tells the frontend: don't bother
+      embedding, show the overlay instead.
+    - Otherwise fall through: serve the HTML exactly as before.
+  Verified live: /preview?site=google.com -> 409 {"embeddable":false};
+  /preview?site=example.com -> 200 HTML.
+
+server.listen(3000, "127.0.0.1", ...)
+  Only accepts connections from this machine (127.0.0.1 = localhost).
+  The deployed API on Vercel is the public version of the same idea.
+
+
+--------------------------------------------------------------------------------
+PART 4: lib/site.js — THE HARDENED FETCHING LIBRARY (used by api/*)
+--------------------------------------------------------------------------------
+
+The deployed api/ files share this stricter version of fetching. It
+reimplements what server.js does with plain fetch(), but with manual,
+paranoid control — because it's exposed to the whole internet.
+
+MAX_HTML_BYTES = 1_000_000; MAX_REDIRECTS = 5;
+  Hard caps so a huge page or redirect loop can't exhaust server memory.
+
+function cleanTarget(raw)  (stricter cousin of the server.js one)
+  Uses the built-in URL parser instead of regex chains. Rejects URLs
+  with a username:password@ in them (a classic trick to smuggle weird
+  hosts past validators).
+
+function isPublicAddress(address)
+  Returns false for IP ranges that are private/special:
+    IPv4: 0.x (this network), 10.x, 127.x (localhost), 169.254.x (link-
+    local), 172.16-31.x, 192.168.x, 100.64-127.x (carrier-grade NAT),
+    224+ (multicast/reserved).
+    IPv6: rejects IPv4-mapped addresses (::ffff:1.2.3.4) by checking the
+    inner v4 address, and only accepts global unicast (2000::/3) minus
+    the documentation prefix 2001:db8::.
+  This is deeper protection than server.js's isBlockedHost: it works
+  even if someone points a public domain at an internal IP.
+
+async function resolvePublic(hostname)
+  Rejects obvious non-starters (localhost, *.localhost, *.local, raw IPs
+  — those must go through fetchPage's normal path), then dns.lookup with
+  all:true and requires EVERY resolved address to be public. This closes
+  "my domain resolves to 127.0.0.1 on your resolver" attacks.
+
+function requestOnce(url, address)
+  Makes ONE request with Node's raw https.request — no fetch() — for
+  full control:
+    - lookup: overrides DNS and forces the connection to the EXACT IP
+      resolved earlier. This pins the connection to the checked address
+      (defeats DNS rebinding, where a domain flips its IP between the
+      check and the real request).
+    - collects the body but caps it at MAX_HTML_BYTES
+    - 10-second timeout; req.destroy(new Error(...)) on hang
+    - resolves { status, location, headers (NEW), body }
+  THE NEW PART: `headers: response.headers` was added so callers can now
+  inspect response headers — that's what lets api/preview.js do the
+  X-Frame-Options / CSP check. response.headers in Node is an object
+  whose keys are ALWAYS lowercase — that's why api/preview.js reads
+  page.headers["x-frame-options"].
+
+async function fetchPage(input)
+  Manual redirect loop (up to MAX_REDIRECTS):
+    force url.protocol = "https:" before EVERY hop, so even a redirect
+    that says "go to http://" gets upgraded to TLS;
+    call resolvePublic + requestOnce;
+    if status is a redirect AND there's a Location header, follow it;
+    otherwise return { status, html, url, headers (NEW) }.
+
+function analyze(html, host, finalUrl)
+function extractPolicyLinks(html, base)
+function buildTermsFindings(policies)
+  Same algorithms as server.js (slightly terser user-facing text). The
+  deployed /check returns these to your frontend.
+
+module.exports = { ... }
+  Makes those functions available to api/check.js and api/preview.js
+  via require("../lib/site").
+
+
+--------------------------------------------------------------------------------
+PART 5: api/preview.js AND api/check.js — THE DEPLOYED (VERCEL) ENDPOINTS
+--------------------------------------------------------------------------------
+
+These are the live versions your frontend actually calls.
+
+api/preview.js — line by line
+  ALLOWED_ORIGIN = "https://tejusbhasin.github.io"
+      The ONLY browser origin allowed to read responses (CORS).
+  const rateLimits = new Map();  + the counting block
+      Sliding-window rate limit: per IP, max 20 previews per 60 seconds.
+      x-forwarded-for is the visitor's real IP when Vercel proxies;
+      .split(",").pop().trim() grabs the last entry. 429 when exceeded.
+  OPTIONS branch -> CORS preflight answer (204).
+  GET-only (405 otherwise). cleanTarget validates ?site=.
+  fetchPage -> the NEW header check:
+        const xfo = (page.headers && page.headers["x-frame-options"]) || "";
+        const csp = (page.headers && page.headers["content-security-policy"]) || "";
+        if (/deny|sameorigin/i.test(xfo) || /frame-ancestors/i.test(csp)) {
+          res.setHeader("Content-Type", "application/json");
+          return res.status(409).send(JSON.stringify({ embeddable: false }));
+        }
+    Same rule as server.js, but .send() because Vercel's response object
+    wraps Node's. page.headers is the raw headers object from lib/site.js.
+  Otherwise: HTML passthrough. page.status >= 400 -> answer 502 (the
+  upstream broke); else 200 with the HTML.
+
+api/check.js — line by line
+  setHeaders(req,res): CORS for the allowed origin + Cache-Control:
+  no-store (browsers/proxies must not cache personal safety results).
+  limited(req): same 20/min rate limit, returns true when over.
+  OPTIONS preflight, GET-only, cleanTarget validation.
+  Then the analysis pipeline:
+    fetchPage -> analyze -> extractPolicyLinks
+    for each of [Terms of Service, Privacy Policy]: fetch the policy;
+    ok = status 200-399 AND html longer than 400 bytes (a real page,
+    not an empty shell)
+    buildTermsFindings -> counts -> score = max(0, 100 - bad*30 - warn*10)
+    -> verdict -> 200 JSON { site, url, status, checkedAt, score, verdict,
+    counts, findings, policies, termsFindings, source: html.slice(0, 20_000) }
+  catch -> 400 JSON { error }.
+
+
+--------------------------------------------------------------------------------
+PART 6: THE NEW FEATURE, END TO END (so you can re-derive it yourself)
+--------------------------------------------------------------------------------
+
+GOAL: when a site forbids embedding, show a black overlay saying
+"This site doesn't currently support embedded previews", and move the
+preview section to the bottom.
+
+WHY NOT IN THE BROWSER: same-origin policy seals the iframe; JS can't
+look at its pixels. (See Part 1.)
+
+SO THE PLAN IS: detect the CAUSE (headers) on the server, report it with
+a distinctive status code, let the frontend react.
+
+1. lib/site.js: pass response headers out of requestOnce/fetchPage
+   (otherwise api/preview.js can't see them).
+2. api/preview.js AND server.js: after fetching, read
+   x-frame-options / content-security-policy. If embedding is forbidden,
+   reply 409 {"embeddable":false} instead of HTML.
+3. index.html render(): fetch the preview URL first; status 409 ->
+   showUnsupportedPreview(); anything else -> embed normally.
+4. showUnsupportedPreview(): appendChild MOVES the section to the bottom
+   of the results card; classList.add("show") reveals the black overlay.
+5. CSS: the overlay is an absolutely-positioned child of a
+   position:relative wrapper, hidden with display:none until .show.
+
+TESTED AND WORKING (local server):
+  curl ".../preview?site=google.com"   -> 409 {"embeddable":false}
+  curl ".../preview?site=example.com"  -> 200 (HTML)
+
+
+--------------------------------------------------------------------------------
+PART 7: HOW TO RUN + TEST ALL OF THIS YOURSELF
+--------------------------------------------------------------------------------
+
+Local backend test (no browser needed):
+    cd sus-or-bus
+    node server.js
+    # in another terminal tab:
+    curl -i "http://127.0.0.1:3000/preview?site=google.com"     # 409 + JSON
+    curl -i "http://127.0.0.1:3000/preview?site=example.com"   # 200 + HTML
+    curl -i "http://127.0.0.1:3000/check?site=example.com"     # the full JSON
+
+Full-stack test in your browser:
+  1. node server.js
+  2. In index.html, temporarily point BOTH fetch URLs at your machine:
+       https://susorbus.vercel.app/api/check...   ->   http://127.0.0.1:3000/check...
+       https://susorbus.vercel.app/api/preview...  ->   http://127.0.0.1:3000/preview...
+  3. Open http://127.0.0.1:3000, check "google.com"  -> overlay shows,
+     preview section moves to the bottom.
+  4. Check "example.com" -> normal live preview.
+  (When deployed, GitHub Pages + the Vercel api/ files behave the same
+  as long as api/preview.js with the new check is what's live.)
+
+Deploying:
+  api/*.js + lib/*.js are the Vercel project. Push the repo; Vercel
+  rebuilds. The frontend on GitHub Pages needs no change for this
+  feature (it already checks for 409).
+
+
+--------------------------------------------------------------------------------
+PART 8: GLOSSARY (quick reference)
+--------------------------------------------------------------------------------
+  origin       = protocol + host + port, e.g. https://a.com:443
+  iframe       = a page inside your page
+  DOM          = the browser's live representation of the HTML
+  header       = metadata sent before an HTTP response body
+  CORS         = the rule + mechanism for cross-origin browser reads
+  preflight    = the browser's OPTIONS "may I?" request before the real one
+  SSRF         = tricking a server into fetching internal/private URLs
+  rate limit   = cap on requests per time window per visitor
+  ternary      = condition ? a : b   (inline if/else)
+  regex        = pattern language for matching text
+  promise      = an IOU for a value that arrives later; await unwraps it
+  JSON         = text format for structured data
+  409          = our signal meaning "this site refuses embedded previews"
+================================================================================
