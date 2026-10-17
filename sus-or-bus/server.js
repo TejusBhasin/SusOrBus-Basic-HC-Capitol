@@ -15,6 +15,15 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    if (req.url.startsWith("/check")) {
+        const site = new URL(req.url, "http://x").searchParams.get("site");
+        const r = await fetch("https://" + site);
+        const html = await r.text();
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({ site: site, htmlLength: html.length }));
+        return;
+    }
+
     try {
         const r = await fetch("https://" + site);
         const html = await r.text();
