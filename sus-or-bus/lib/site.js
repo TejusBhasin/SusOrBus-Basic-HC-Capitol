@@ -55,7 +55,10 @@ function requestOnce(url, address) {
       path: url.pathname + url.search,
       method: "GET",
       servername: url.hostname,
-      lookup: (_host, _opts, callback) => callback(null, address.address, address.family),
+      lookup: (_host, options, callback) => {
+        if (options && options.all) callback(null, [address]);
+        else callback(null, address.address, address.family);
+      },
       headers: {
         "User-Agent": "SusOrBus/1.0",
         "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
