@@ -28,8 +28,12 @@ module.exports = async function handler(req, res) {
     const xfo = (page.headers && page.headers["x-frame-options"]) || "";
     const csp = (page.headers && page.headers["content-security-policy"]) || "";
     if (/deny|sameorigin/i.test(xfo) || /frame-ancestors/i.test(csp)) {
+      let reason = "the site sent anti-embedding headers";
+      if (/deny/i.test(xfo)) reason = "it sends X-Frame-Options: DENY";
+      else if (/sameorigin/i.test(xfo)) reason = "it sends X-Frame-Options: SAMEORIGIN";
+      else if (/frame-ancestors/i.test(csp)) reason = "its Content-Security-Policy blocks framing";
       res.setHeader("Content-Type", "application/json");
-      return res.status(409).send(JSON.stringify({ embeddable: false }));
+      return res.status(409).send(JSON.stringify({ embeddable: false, reason }));
     }
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     return res.status(page.status >= 400 ? 502 : 200).send(page.html);

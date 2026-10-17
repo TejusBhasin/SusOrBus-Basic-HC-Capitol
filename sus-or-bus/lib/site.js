@@ -85,10 +85,12 @@ function requestOnce(url, address) {
 
 async function fetchPage(input) {
   let url = input instanceof URL ? input : new URL(input);
+  const chain = [];
   for (let i = 0; i <= MAX_REDIRECTS; i++) {
     if (!["https:", "http:"].includes(url.protocol)) throw new Error("Unsupported redirect.");
     // Always use TLS, including redirects that request plain HTTP.
     url.protocol = "https:";
+    chain.push(url.href);
     const address = await resolvePublic(url.hostname);
     const result = await requestOnce(url, address);
     if ([301, 302, 303, 307, 308].includes(result.status) && result.location) {
@@ -96,7 +98,7 @@ async function fetchPage(input) {
       url = new URL(result.location, url);
       continue;
     }
-    return { status: result.status, html: result.body, url: url.href, headers: result.headers };
+    return { status: result.status, html: result.body, url: url.href, headers: result.headers, chain };
   }
   throw new Error("Too many redirects.");
 }

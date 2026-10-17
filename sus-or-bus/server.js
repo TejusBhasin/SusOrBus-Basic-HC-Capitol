@@ -27,16 +27,28 @@ function isBlockedHost(host) {
         || host.includes("@");
 }
 
-async function fetchPage(url) {
-    const r = await fetch(url, {
-        redirect: "follow",
-        signal: AbortSignal.timeout(10000),
-        headers: {
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+async function fetchPage(startUrl) {
+    const chain = [];
+    let url = startUrl;
+    for (let i = 0; i < 6; i++) {
+        const r = await fetch(url, {
+            redirect: "manual",
+            signal: AbortSignal.timeout(10000),
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+            }
+        });
+        chain.push(r.url);
+        if (r.status >= 300 && r.status < 400) {
+            const loc = r.headers.get("location");
+            if (!loc) break;
+            url = new URL(loc, url).href;
+            continue;
         }
-    });
-    const html = await r.text();
-    return { r, html };
+        const html = await r.text();
+        return { r, html, chain };
+    }
+    throw new Error("Too many redirects");
 }
 
 // ---------- analysis ----------
@@ -206,7 +218,7 @@ const server = http.createServer(async (req, res) => {
             return;
         }
         try {
-            const { r, html } = await fetchPage("https://" + target);
+            const { r, html, chain } = await fetchPage("https://" + target);
 
             const findings = analyze(html, target, r.url);
             const links = extractPolicyLinks(html, r.url);
@@ -214,6 +226,12 @@ const server = http.createServer(async (req, res) => {
             if (links.terms) policies.push({ kind: "Terms of Service", ...(await checkPolicy(links.terms)) });
             if (links.privacy) policies.push({ kind: "Privacy Policy", ...(await checkPolicy(links.privacy)) });
             const termsFindings = buildTermsFindings(policies);
+
+            const secHeaders = {};
+            for (const h of ["content-security-policy", "strict-transport-security", "x-content-type-options", "x-frame-options", "server"]) {
+                const v = r.headers.get(h);
+                if (v) secHeaders[h] = v;
+            }
 
             const counts = { good: 0, warning: 0, bad: 0 };
             for (const f of findings.concat(termsFindings)) counts[f.level]++;
@@ -231,6 +249,8 @@ const server = http.createServer(async (req, res) => {
                 findings,
                 policies,
                 termsFindings,
+                chain: chain || [],
+                headers: secHeaders,
                 source: html.slice(0, SOURCE_LIMIT)
             }));
         } catch (err) {
@@ -251,9 +271,13 @@ const server = http.createServer(async (req, res) => {
             const xfo = r.headers.get("x-frame-options") || "";
             const csp = r.headers.get("content-security-policy") || "";
             if (/deny|sameorigin/i.test(xfo) || /frame-ancestors/i.test(csp)) {
+                let reason = "the site sent anti-embedding headers";
+                if (/deny/i.test(xfo)) reason = "it sends X-Frame-Options: DENY";
+                else if (/sameorigin/i.test(xfo)) reason = "it sends X-Frame-Options: SAMEORIGIN";
+                else if (/frame-ancestors/i.test(csp)) reason = "its Content-Security-Policy blocks framing";
                 res.statusCode = 409;
                 res.setHeader("Content-Type", "application/json");
-                return res.end(JSON.stringify({ embeddable: false }));
+                return res.end(JSON.stringify({ embeddable: false, reason }));
             }
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             res.end(html);

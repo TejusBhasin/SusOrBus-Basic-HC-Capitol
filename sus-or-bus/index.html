@@ -31,10 +31,15 @@
             outline: none;
         }
 
+        .report-head { display: none; }
+        .limitations { display: none; }
         @media print {
             * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .search, .mode-btn, .status { display: none; }
             .card { margin: 0; max-width: 100%; }
+            .report-head { display: block; font-size: 20px; font-weight: 800; letter-spacing: 2px; margin-bottom: 12px; }
+            .limitations { display: block; color: #555; font-size: 11px; border-top: 1px solid #999; padding-top: 8px; margin-top: 20px; }
+            #previewSection { display: none; }
         }
         input:focus { border-color: #ff4757; }
         button {
@@ -61,8 +66,10 @@
         .score-num.mid { color: #ffa502; }
         .score-num.sus { color: #ff4757; }
         .meta { color: #8b949e; font-size: 14px; margin-top: 6px; word-break: break-all; }
+        .verdict-note { color: #8b949e; font-size: 12px; margin-top: 4px; }
 
         .counts { display: flex; gap: 10px; margin-bottom: 14px; }
+        .legend { color: #8b949e; font-size: 12px; margin: -6px 0 14px; text-align: center; }
         .count {
             flex: 1;
             background: #161b22;
@@ -134,6 +141,9 @@
         .nerd-text { display: none; color: #8b949e; }
         body.nerd .nerd-text { display: block; }
         body.nerd .simple-text { display: none; }
+        .nerd-only { display: none; }
+        body.nerd .nerd-only { display: block; }
+        #techBox ol { margin: 6px 0 12px 22px; color: #8b949e; font-size: 13px; line-height: 1.6; }
 
         .policy-url { color: #58a6ff; font-size: 14px; word-break: break-all; margin-top: 6px; }
 
@@ -173,6 +183,7 @@
             text-align: center;
         }
         .preview-overlay.show { display: flex; }
+        .overlay-link { color: #fff; margin-left: 6px; }
 
         .status { text-align: center; color: #8b949e; }
     </style>
@@ -188,10 +199,12 @@
         </div>
 
         <div id="result" class="hidden">
+            <div class="report-head">SUS OR BUS — SITE SAFETY REPORT</div>
             <div class="result-top">
                 <div>
                     <p class="eyebrow">New check</p>
                     <div id="verdict" class="verdict"></div>
+                    <p class="verdict-note">automated heuristic scan — no findings never means guaranteed safe</p>
                     <p id="meta" class="meta"></p>
                 </div>
                 <div id="scoreNum" class="score-num"></div>
@@ -203,13 +216,20 @@
                 <div class="count bad"><span id="cBad">0</span><label>bad</label></div>
             </div>
 
+            <p class="legend">good = verified safe signal · warning = needs your attention · bad = serious risk · checks on this device: <span id="checksRun">0</span></p>
+
             <div class="bar"><div id="barFill" class="bar-fill"></div></div>
 
             <button id="modeBtn" class="mode-btn">nerd mode: off</button>
-<button id="pdfBtn" class="mode-btn">export PDF</button>
+            <button id="pdfBtn" class="mode-btn">export PDF</button>
             <section>
                 <h2>terms &amp; privacy check</h2>
                 <div id="termsBox"></div>
+            </section>
+
+            <section class="nerd-only">
+                <h2>technical details</h2>
+                <div id="techBox"></div>
             </section>
 
             <section>
@@ -224,7 +244,7 @@
                 <h2>preview</h2>
                 <div class="preview-wrap">
                     <iframe id="preview" title="site preview"></iframe>
-                    <div id="previewOverlay" class="preview-overlay">This site doesn't currently support embedded previews</div>
+                    <div id="previewOverlay" class="preview-overlay"><span id="overlayMsg"></span> <a id="overlayLink" class="overlay-link" target="_blank" rel="noopener">Open the site directly</a></div>
                 </div>
             </section>
 
@@ -232,9 +252,11 @@
                 <h2>the breakdown</h2>
                 <div id="findings"></div>
             </section>
+
+            <p class="limitations">This report summarizes automated heuristic checks on the fetched page. "No threats detected" is NOT a guarantee of safety. Preview availability depends on the target site's own embedding policy.</p>
         </div>
 
-        <p id="status" class="status"></p>
+        <p id="status" class="status">Paste a link above and hit Check to run your first scan.</p>
     </div>
 
     <script>
@@ -302,16 +324,38 @@
 
             $("source").textContent = data.source;
 
+            const tech = $("techBox");
+            tech.replaceChildren();
+            if (data.chain && data.chain.length > 1) {
+                tech.append(el("p", "policy-url", "Redirect chain (" + data.chain.length + " hops):"));
+                const ol = el("ol");
+                for (const u of data.chain) ol.append(el("li", null, u));
+                tech.append(ol);
+            }
+            const hk = data.headers ? Object.keys(data.headers) : [];
+            tech.append(el("p", "policy-url", hk.length ? "Security headers received:" : "No common security headers were sent by the server."));
+            if (hk.length) {
+                const pre = el("pre");
+                pre.textContent = hk.map(k => k + ": " + data.headers[k]).join("\n");
+                tech.append(pre);
+            }
+            tech.append(el("p", "policy-url", "Limitations: static heuristics on fetched HTML + headers. No findings never means guaranteed safe."));
+
             const pUrl = "https://susorbus.vercel.app/api/preview?site=" + encodeURIComponent(data.site);
             const pr = await fetch(pUrl);
-            if (pr.status === 409) showUnsupportedPreview();
+            if (pr.status === 409) {
+                const info = await pr.json().catch(() => ({}));
+                showUnsupportedPreview(info.reason, data.url);
+            }
             else { $("previewOverlay").classList.remove("show"); $("preview").src = pUrl; }
 
             $("findings").replaceChildren(...data.findings.map(renderFinding));
         }
 
-        function showUnsupportedPreview() {
+        function showUnsupportedPreview(reason, pageUrl) {
             $("result").appendChild($("previewSection"));
+            $("overlayMsg").textContent = "A live preview can't be embedded here because " + (reason || "this site blocks embedding") + ".";
+            $("overlayLink").href = pageUrl;
             $("previewOverlay").classList.add("show");
         }
 
@@ -325,6 +369,9 @@
             $("status").textContent = "";
             if (data.error) { $("status").textContent = data.error; return; }
             render(data);
+            const n = (parseInt(localStorage.getItem("checksRun")) || 0) + 1;
+            localStorage.setItem("checksRun", String(n));
+            $("checksRun").textContent = n;
         }
 
         $("modeBtn").addEventListener("click", () => {
