@@ -117,6 +117,30 @@ function analyze(html, host, finalUrl) {
             nerd: "Host " + host + " is not a raw IP, uses no abuse-prone free TLD, and has a reasonable length and hyphen count." });
     }
 
+    const text = html
+        .replace(/<script[\s\S]*?<\/script>/gi, " ")
+        .replace(/<style[\s\S]*?<\/style>/gi, " ")
+        .replace(/<[^>]+>/g, " ")
+        .toLowerCase();
+    const title = ((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "").trim();
+    const topics = {
+        gambling: { level: "warning", words: ["casino", "jackpot", "odds", "wager", "poker", "betting", "roulette"] },
+        crypto: { level: "warning", words: ["bitcoin", "crypto", "blockchain", "wallet", "token", "airdrop", "defi"] },
+        finance: { level: "warning", words: ["loan", "interest rate", "credit score", "mortgage", "debt relief"] },
+        adult: { level: "warning", words: ["adult content", "xxx", "webcam", "nsfw"] },
+        shopping: { level: "good", words: ["cart", "checkout", "shipping", "add to cart", "order now", "free shipping"] },
+        news: { level: "good", words: ["breaking news", "headlines", "subscribe", "editorial"] }
+    };
+    const countWord = (hay, w) => (hay.match(new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&") + "\\b", "g")) || []).length;
+    for (const [topic, info] of Object.entries(topics)) {
+        const hits = info.words.map(w => ({ w, n: countWord(text, w) })).filter(h => h.n > 0);
+        if (hits.length === 0) continue;
+        const evidence = hits.map(h => "'" + h.w + "' x" + h.n).join(", ");
+        findings.push({ level: info.level, category: "topic", title: "Appears to be " + topic + "-related",
+            simple: "The page content suggests this is a " + topic + " site (" + evidence + "). Decide if that's what you expected at this address.",
+            nerd: "Counted whole-word matches in visible page text: " + evidence + ". Page title: \"" + title + "\"." });
+    }
+
     return findings;
 }
 

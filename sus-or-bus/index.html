@@ -290,7 +290,11 @@
             termsBox.replaceChildren(...data.termsFindings.map(renderFinding));
             if (data.policies.length > 0) {
                 for (const p of data.policies) {
-                    termsBox.append(el("p", "policy-url", p.kind + ": " + p.url));
+                    const a = el("a", "policy-url", p.kind + ": " + p.url);
+                    a.href = p.url;
+                    a.target = "_blank";
+                    a.rel = "noopener";
+                    termsBox.append(a);
                 }
             } else {
                 termsBox.append(el("p", "policy-url", "No terms or privacy links detected on the page."));
