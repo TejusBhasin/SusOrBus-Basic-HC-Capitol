@@ -12,12 +12,9 @@
             color: #e6e6e6;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 24px;
         }
-        .card { width: 100%; max-width: 720px; }
+        .card { width: 100%; max-width: 760px; margin: 40px auto; }
         h1 { font-size: 44px; text-align: center; letter-spacing: 2px; margin-bottom: 6px; }
         h1 .sus { color: #ff4757; }
         h1 .bus { color: #2ed573; }
@@ -46,30 +43,115 @@
         }
         button:hover { background: #ff6b7a; }
         .hidden { display: none; }
-        .verdict { text-align: center; font-size: 36px; font-weight: 800; margin-bottom: 4px; }
-        .verdict.sus { color: #ff4757; }
-        .verdict.mid { color: #ffa502; }
+
+        .result-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+        .eyebrow { color: #8b949e; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+        .verdict { font-size: 36px; font-weight: 800; }
         .verdict.bus { color: #2ed573; }
-        .score-label { text-align: center; color: #8b949e; margin-bottom: 10px; }
-        .bar { height: 14px; background: #161b22; border-radius: 999px; overflow: hidden; margin-bottom: 24px; }
+        .verdict.mid { color: #ffa502; }
+        .verdict.sus { color: #ff4757; }
+        .score-num { font-size: 72px; font-weight: 800; line-height: 1; }
+        .score-num.bus { color: #2ed573; }
+        .score-num.mid { color: #ffa502; }
+        .score-num.sus { color: #ff4757; }
+        .meta { color: #8b949e; font-size: 14px; margin-top: 6px; word-break: break-all; }
+
+        .counts { display: flex; gap: 10px; margin-bottom: 14px; }
+        .count {
+            flex: 1;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+        .count span { display: block; font-size: 28px; font-weight: 800; }
+        .count label { color: #8b949e; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+        .count.good span { color: #2ed573; }
+        .count.warning span { color: #ffa502; }
+        .count.bad span { color: #ff4757; }
+
+        .bar { height: 14px; background: #161b22; border-radius: 999px; overflow: hidden; margin-bottom: 14px; }
         .bar-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
-        ul.findings { list-style: none; }
-        li {
+
+        .mode-btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 20px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            color: #e6e6e6;
+            font-weight: 600;
+        }
+        .mode-btn:hover { border-color: #ff4757; background: #161b22; }
+
+        section { margin-bottom: 24px; }
+        h2 {
+            font-size: 15px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #8b949e;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 6px;
+        }
+
+        .finding {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-left: 4px solid;
+            border-radius: 8px;
             padding: 12px 14px;
             margin-bottom: 8px;
-            border-radius: 8px;
-            background: #161b22;
-            border-left: 4px solid;
             font-size: 15px;
-            line-height: 1.4;
+            line-height: 1.5;
         }
-        li.bad { border-color: #ff4757; }
-        li.warning { border-color: #ffa502; }
-        li.good { border-color: #2ed573; }
-        .badge { font-weight: 700; margin-right: 8px; font-size: 12px; letter-spacing: 1px; }
-        li.bad .badge { color: #ff4757; }
-        li.warning .badge { color: #ffa502; }
-        li.good .badge { color: #2ed573; }
+        .finding.good { border-left-color: #2ed573; }
+        .finding.warning { border-left-color: #ffa502; }
+        .finding.bad { border-left-color: #ff4757; }
+        .f-head { margin-bottom: 4px; }
+        .badge { font-weight: 700; font-size: 12px; letter-spacing: 1px; margin-right: 8px; }
+        .finding.good .badge { color: #2ed573; }
+        .finding.warning .badge { color: #ffa502; }
+        .finding.bad .badge { color: #ff4757; }
+        .cat {
+            color: #8b949e;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border: 1px solid #30363d;
+            border-radius: 999px;
+            padding: 2px 8px;
+        }
+        .f-title { font-weight: 700; margin-bottom: 4px; }
+        .finding p { margin-top: 4px; }
+        .nerd-text { display: none; color: #8b949e; }
+        body.nerd .nerd-text { display: block; }
+        body.nerd .simple-text { display: none; }
+
+        .policy-url { color: #58a6ff; font-size: 14px; word-break: break-all; margin-top: 6px; }
+
+        details { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 10px 14px; }
+        summary { cursor: pointer; font-weight: 600; color: #e6e6e6; }
+        pre {
+            margin-top: 10px;
+            max-height: 400px;
+            overflow: auto;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #a5d6ff;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        iframe {
+            width: 100%;
+            height: 320px;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            background: #fff;
+        }
+
         .status { text-align: center; color: #8b949e; }
     </style>
 </head>
@@ -82,39 +164,137 @@
             <input id="url" placeholder="Paste a link... e.g. example.com" />
             <button onclick="check()">Check</button>
         </div>
+
         <div id="result" class="hidden">
-            <div id="verdict" class="verdict"></div>
-            <p id="scoreLabel" class="score-label"></p>
+            <div class="result-top">
+                <div>
+                    <p class="eyebrow">New check</p>
+                    <div id="verdict" class="verdict"></div>
+                    <p id="meta" class="meta"></p>
+                </div>
+                <div id="scoreNum" class="score-num"></div>
+            </div>
+
+            <div class="counts">
+                <div class="count good"><span id="cGood">0</span><label>good</label></div>
+                <div class="count warning"><span id="cWarn">0</span><label>warning</label></div>
+                <div class="count bad"><span id="cBad">0</span><label>bad</label></div>
+            </div>
+
             <div class="bar"><div id="barFill" class="bar-fill"></div></div>
-            <ul id="findings" class="findings"></ul>
+
+            <button id="modeBtn" class="mode-btn">nerd mode: off</button>
+
+            <section>
+                <h2>terms &amp; privacy check</h2>
+                <div id="termsBox"></div>
+            </section>
+
+            <section>
+                <h2>source code</h2>
+                <details>
+                    <summary>Show fetched HTML</summary>
+                    <pre id="source"></pre>
+                </details>
+            </section>
+
+            <section>
+                <h2>preview</h2>
+                <iframe id="preview" title="site preview"></iframe>
+            </section>
+
+            <section>
+                <h2>the breakdown</h2>
+                <div id="findings"></div>
+            </section>
         </div>
+
         <p id="status" class="status"></p>
     </div>
+
     <script>
+        const $ = id => document.getElementById(id);
+
+        function el(tag, cls, text) {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text !== undefined) e.textContent = text;
+            return e;
+        }
+
+        function scoreClass(score) {
+            return score >= 70 ? "bus" : score >= 40 ? "mid" : "sus";
+        }
+
+        function renderFinding(f) {
+            const item = el("div", "finding " + f.level);
+            const head = el("div", "f-head");
+            head.append(el("span", "badge", f.level.toUpperCase()), el("span", "cat", f.category));
+            item.append(
+                head,
+                el("div", "f-title", f.title),
+                el("p", "simple-text", f.simple),
+                el("p", "nerd-text", f.nerd)
+            );
+            return item;
+        }
+
+        function render(data) {
+            $("result").classList.remove("hidden");
+            const cls = scoreClass(data.score);
+
+            const v = $("verdict");
+            v.textContent = data.verdict;
+            v.className = "verdict " + cls;
+
+            const s = $("scoreNum");
+            s.textContent = data.score;
+            s.className = "score-num " + cls;
+
+            $("meta").textContent = data.url + "  •  " + new Date(data.checkedAt).toLocaleString() + "  •  HTTP " + data.status;
+
+            $("cGood").textContent = data.counts.good;
+            $("cWarn").textContent = data.counts.warning;
+            $("cBad").textContent = data.counts.bad;
+
+            const fill = $("barFill");
+            fill.style.width = data.score + "%";
+            fill.style.background = cls === "bus" ? "#2ed573" : cls === "mid" ? "#ffa502" : "#ff4757";
+
+            const termsBox = $("termsBox");
+            termsBox.replaceChildren(...data.termsFindings.map(renderFinding));
+            if (data.policies.length > 0) {
+                for (const p of data.policies) {
+                    termsBox.append(el("p", "policy-url", p.kind + ": " + p.url));
+                }
+            } else {
+                termsBox.append(el("p", "policy-url", "No terms or privacy links detected on the page."));
+            }
+
+            $("source").textContent = data.source;
+            $("preview").src = "/preview?site=" + encodeURIComponent(data.site);
+
+            $("findings").replaceChildren(...data.findings.map(renderFinding));
+        }
+
         async function check() {
-            const site = document.getElementById("url").value.trim();
-            const status = document.getElementById("status");
-            if (!site) { status.textContent = "Type a website first."; return; }
-            status.textContent = "Analyzing " + site + " ...";
-            document.getElementById("result").classList.add("hidden");
+            const site = $("url").value.trim();
+            if (!site) { $("status").textContent = "Type a website first."; return; }
+            $("status").textContent = "Analyzing " + site + " ...";
+            $("result").classList.add("hidden");
             const res = await fetch("/check?site=" + encodeURIComponent(site));
             const data = await res.json();
-            status.textContent = "";
-            if (data.error) { status.textContent = data.error; return; }
-            document.getElementById("result").classList.remove("hidden");
-            const v = document.getElementById("verdict");
-            v.textContent = data.verdict;
-            v.className = "verdict " + (data.score >= 70 ? "bus" : data.score >= 40 ? "mid" : "sus");
-            document.getElementById("scoreLabel").textContent = "Safety score: " + data.score + "/100 — " + data.site;
-            const fill = document.getElementById("barFill");
-            fill.style.width = data.score + "%";
-            fill.style.background = data.score >= 70 ? "#2ed573" : data.score >= 40 ? "#ffa502" : "#ff4757";
-            const labels = { bad: "BAD", warning: "WARNING", good: "GOOD" };
-            document.getElementById("findings").innerHTML = data.findings
-                .map(f => "<li class='" + f.level + "'><span class='badge'>" + labels[f.level] + "</span>" + f.text + "</li>")
-                .join("");
+            $("status").textContent = "";
+            if (data.error) { $("status").textContent = data.error; return; }
+            render(data);
         }
-        document.getElementById("url").addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+
+        $("modeBtn").addEventListener("click", () => {
+            const nerd = document.body.classList.toggle("nerd");
+            $("modeBtn").textContent = nerd ? "nerd mode: on" : "nerd mode: off";
+        });
+
+        $("url").addEventListener("keydown", e => { if (e.key === "Enter") check(); });
     </script>
 </body>
 
