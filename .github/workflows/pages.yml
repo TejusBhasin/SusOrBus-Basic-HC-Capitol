@@ -27,10 +27,14 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+      - name: Prepare static website files
+        run: |
+          mkdir -p _site
+          cp sus-or-bus/index.html _site/index.html
       - name: Upload website files
         uses: actions/upload-pages-artifact@v3
         with:
-          path: sus-or-bus
+          path: _site
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
