@@ -73,7 +73,8 @@ function requestOnce(url, address) {
         if (Buffer.byteLength(body, "utf8") < MAX_HTML_BYTES) body += chunk;
       });
       response.on("end", () => resolve({ status: response.statusCode || 0,
-        location: response.headers.location, body: body.slice(0, MAX_HTML_BYTES) }));
+        location: response.headers.location, headers: response.headers,
+        body: body.slice(0, MAX_HTML_BYTES) }));
       response.on("error", reject);
     });
     req.setTimeout(10_000, () => req.destroy(new Error("Request timed out.")));
@@ -95,7 +96,7 @@ async function fetchPage(input) {
       url = new URL(result.location, url);
       continue;
     }
-    return { status: result.status, html: result.body, url: url.href };
+    return { status: result.status, html: result.body, url: url.href, headers: result.headers };
   }
   throw new Error("Too many redirects.");
 }

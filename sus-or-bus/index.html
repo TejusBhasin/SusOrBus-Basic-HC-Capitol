@@ -152,6 +152,22 @@
             background: #fff;
         }
 
+        .preview-wrap { position: relative; }
+        .preview-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            color: #fff;
+            border-radius: 8px;
+            padding: 16px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .preview-overlay.show { display: flex; }
+
         .status { text-align: center; color: #8b949e; }
     </style>
 </head>
@@ -198,9 +214,12 @@
                 </details>
             </section>
 
-            <section>
+            <section id="previewSection">
                 <h2>preview</h2>
-                <iframe id="preview" title="site preview"></iframe>
+                <div class="preview-wrap">
+                    <iframe id="preview" title="site preview"></iframe>
+                    <div id="previewOverlay" class="preview-overlay">This site doesn't currently support embedded previews</div>
+                </div>
             </section>
 
             <section>
@@ -239,7 +258,7 @@
             return item;
         }
 
-        function render(data) {
+        async function render(data) {
             $("result").classList.remove("hidden");
             const cls = scoreClass(data.score);
 
@@ -272,9 +291,18 @@
             }
 
             $("source").textContent = data.source;
-            $("preview").src = "https://susorbus.vercel.app/api/preview?site=" + encodeURIComponent(data.site);
+
+            const pUrl = "https://susorbus.vercel.app/api/preview?site=" + encodeURIComponent(data.site);
+            const pr = await fetch(pUrl);
+            if (pr.status === 409) showUnsupportedPreview();
+            else { $("previewOverlay").classList.remove("show"); $("preview").src = pUrl; }
 
             $("findings").replaceChildren(...data.findings.map(renderFinding));
+        }
+
+        function showUnsupportedPreview() {
+            $("result").appendChild($("previewSection"));
+            $("previewOverlay").classList.add("show");
         }
 
         async function check() {

@@ -25,6 +25,12 @@ module.exports = async function handler(req, res) {
   if (!target) return res.status(400).send("Invalid website address.");
   try {
     const page = await fetchPage("https://" + target);
+    const xfo = (page.headers && page.headers["x-frame-options"]) || "";
+    const csp = (page.headers && page.headers["content-security-policy"]) || "";
+    if (/deny|sameorigin/i.test(xfo) || /frame-ancestors/i.test(csp)) {
+      res.setHeader("Content-Type", "application/json");
+      return res.status(409).send(JSON.stringify({ embeddable: false }));
+    }
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     return res.status(page.status >= 400 ? 502 : 200).send(page.html);
   } catch (error) {

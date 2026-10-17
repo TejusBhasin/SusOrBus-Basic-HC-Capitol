@@ -223,7 +223,14 @@ const server = http.createServer(async (req, res) => {
             return;
         }
         try {
-            const { html } = await fetchPage("https://" + target);
+            const { r, html } = await fetchPage("https://" + target);
+            const xfo = r.headers.get("x-frame-options") || "";
+            const csp = r.headers.get("content-security-policy") || "";
+            if (/deny|sameorigin/i.test(xfo) || /frame-ancestors/i.test(csp)) {
+                res.statusCode = 409;
+                res.setHeader("Content-Type", "application/json");
+                return res.end(JSON.stringify({ embeddable: false }));
+            }
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             res.end(html);
         } catch (err) {
