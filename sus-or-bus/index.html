@@ -5,10 +5,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sus or Bus</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #0b0f14;
+            color: #e6e6e6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .card { width: 100%; max-width: 720px; }
+        h1 { font-size: 44px; text-align: center; letter-spacing: 2px; margin-bottom: 6px; }
+        h1 .sus { color: #ff4757; }
+        h1 .bus { color: #2ed573; }
+        .tagline { text-align: center; color: #8b949e; margin-bottom: 28px; }
+        .search { display: flex; gap: 10px; margin-bottom: 28px; }
+        input {
+            flex: 1;
+            padding: 14px 16px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+            background: #161b22;
+            color: #e6e6e6;
+            outline: none;
+        }
+        input:focus { border-color: #ff4757; }
+        button {
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            background: #ff4757;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover { background: #ff6b7a; }
+        .hidden { display: none; }
+        .verdict { text-align: center; font-size: 36px; font-weight: 800; margin-bottom: 4px; }
+        .verdict.sus { color: #ff4757; }
+        .verdict.mid { color: #ffa502; }
+        .verdict.bus { color: #2ed573; }
+        .score-label { text-align: center; color: #8b949e; margin-bottom: 10px; }
+        .bar { height: 14px; background: #161b22; border-radius: 999px; overflow: hidden; margin-bottom: 24px; }
+        .bar-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+        ul.findings { list-style: none; }
+        li {
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            background: #161b22;
+            border-left: 4px solid;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        li.bad { border-color: #ff4757; }
+        li.warning { border-color: #ffa502; }
+        li.good { border-color: #2ed573; }
+        .badge { font-weight: 700; margin-right: 8px; font-size: 12px; letter-spacing: 1px; }
+        li.bad .badge { color: #ff4757; }
+        li.warning .badge { color: #ffa502; }
+        li.good .badge { color: #2ed573; }
+        .status { text-align: center; color: #8b949e; }
+    </style>
 </head>
 
 <body>
-<p>Welcome to Sus or Bus!</p>
+    <div class="card">
+        <h1><span class="sus">SUS</span> or <span class="bus">BUS</span></h1>
+        <p class="tagline">Is that link safe to click? Find out before you find out.</p>
+        <div class="search">
+            <input id="url" placeholder="Paste a link... e.g. example.com" />
+            <button onclick="check()">Check</button>
+        </div>
+        <div id="result" class="hidden">
+            <div id="verdict" class="verdict"></div>
+            <p id="scoreLabel" class="score-label"></p>
+            <div class="bar"><div id="barFill" class="bar-fill"></div></div>
+            <ul id="findings" class="findings"></ul>
+        </div>
+        <p id="status" class="status"></p>
+    </div>
+    <script>
+        async function check() {
+            const site = document.getElementById("url").value.trim();
+            const status = document.getElementById("status");
+            if (!site) { status.textContent = "Type a website first."; return; }
+            status.textContent = "Analyzing " + site + " ...";
+            document.getElementById("result").classList.add("hidden");
+            const res = await fetch("/check?site=" + encodeURIComponent(site));
+            const data = await res.json();
+            status.textContent = "";
+            if (data.error) { status.textContent = data.error; return; }
+            document.getElementById("result").classList.remove("hidden");
+            const v = document.getElementById("verdict");
+            v.textContent = data.verdict;
+            v.className = "verdict " + (data.score >= 70 ? "bus" : data.score >= 40 ? "mid" : "sus");
+            document.getElementById("scoreLabel").textContent = "Safety score: " + data.score + "/100 — " + data.site;
+            const fill = document.getElementById("barFill");
+            fill.style.width = data.score + "%";
+            fill.style.background = data.score >= 70 ? "#2ed573" : data.score >= 40 ? "#ffa502" : "#ff4757";
+            const labels = { bad: "BAD", warning: "WARNING", good: "GOOD" };
+            document.getElementById("findings").innerHTML = data.findings
+                .map(f => "<li class='" + f.level + "'><span class='badge'>" + labels[f.level] + "</span>" + f.text + "</li>")
+                .join("");
+        }
+        document.getElementById("url").addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+    </script>
 </body>
 
 </html>
