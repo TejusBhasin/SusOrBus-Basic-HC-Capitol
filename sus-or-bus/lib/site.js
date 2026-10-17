@@ -27,12 +27,11 @@ function isPublicAddress(address) {
   }
   if (net.isIPv6(address)) {
     const ip = address.toLowerCase();
-    return ip !== "::" && ip !== "::1" && !ip.startsWith("fc") &&
-      !ip.startsWith("fd") && !ip.startsWith("fe8") &&
-      !ip.startsWith("fe9") && !ip.startsWith("fea") &&
-      !ip.startsWith("feb") && !ip.startsWith("ff") &&
-      !ip.startsWith("::ffff:127.") && !ip.startsWith("::ffff:10.") &&
-      !ip.startsWith("::ffff:192.168.") && !ip.startsWith("::ffff:169.254.");
+    const mapped = ip.match(/(?:^::ffff:|^0:0:0:0:0:ffff:)(\\d+\\.\\d+\\.\\d+\\.\\d+)$/);
+    if (mapped) return isPublicAddress(mapped[1]);
+    const first = parseInt(ip.split(":")[0] || "0", 16);
+    // Accept only globally routable IPv6 unicast and exclude documentation space.
+    return first >= 0x2000 && first < 0x4000 && !ip.startsWith("2001:db8:");
   }
   return false;
 }
