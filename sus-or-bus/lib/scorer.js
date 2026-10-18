@@ -71,19 +71,54 @@ function normalizeAndDeduplicateFindings(rawFindings = []) {
 /**
  * Computes deterministic score (0 - 100) and assigns verdict from knowledge base.
  */
-function calculateRiskScore(findings = []) {
+function calculateRiskScore(findings = [], options = {}) {
   const counts = { good: 0, warning: 0, bad: 0 };
   let totalDeduction = 0;
+  const findingWeights = scoring.findingWeights || {};
+
+  const vectorDeductions = {
+    transport: 0,
+    content: 0,
+    telemetry: 0,
+    governance: 0
+  };
 
   for (const finding of findings) {
-    counts[finding.level]++;
+    counts[finding.level] = (counts[finding.level] || 0) + 1;
 
-    const baseWeight = SEVERITY_WEIGHTS[finding.severity] ?? (
-      finding.level === "bad" ? 25 : finding.level === "warning" ? 10 : 0
-    );
+    // Use finding-specific calibrated weight if catalog ID, otherwise fall back to severity weight
+    const specificWeight = (finding.id && findingWeights[finding.id]) ?? (finding.legacyId && findingWeights[finding.legacyId]);
+    const baseWeight = specificWeight !== undefined
+      ? specificWeight
+      : (SEVERITY_WEIGHTS[finding.severity] ?? (
+          finding.level === "bad" ? 25 : finding.level === "warning" ? 10 : 0
+        ));
     const confidenceMultiplier = CONFIDENCE_MULTIPLIERS[finding.confidence] ?? 1.0;
+    const deduction = Math.round(baseWeight * confidenceMultiplier);
+    finding.impact = deduction;
 
-    totalDeduction += baseWeight * confidenceMultiplier;
+    totalDeduction += deduction;
+
+    // Attribute to specific risk vector
+    const sub = finding.subcategory || "";
+    const cat = finding.category || "";
+    if (sub === "transport" || sub === "headers") {
+      vectorDeductions.transport += deduction;
+    } else if (sub === "forms" || sub === "scripts" || sub === "elements" || sub === "scam" || cat === "content") {
+      vectorDeductions.content += deduction;
+    } else if (cat === "privacy" || sub === "tracking_transparency" || sub === "telemetry") {
+      vectorDeductions.telemetry += deduction;
+    } else if (cat === "policy" || sub === "transparency") {
+      vectorDeductions.governance += deduction;
+    }
+  }
+
+  // Skeptical adjustment for active third-party tracker count if provided
+  const trackers = options.trackers || [];
+  if (trackers.length > 0) {
+    const trackerPenalty = Math.min(14, trackers.length * 2);
+    totalDeduction += trackerPenalty;
+    vectorDeductions.telemetry += trackerPenalty;
   }
 
   // Calculate score bounded between minScore (0) and maxScore (100)
@@ -94,6 +129,26 @@ function calculateRiskScore(findings = []) {
   if (!verdictObj) {
     verdictObj = verdicts.verdicts[verdicts.verdicts.length - 1]; // Fallback to SUS
   }
+
+  // Compute vector scores and labels
+  const vectors = {
+    transport: {
+      score: Math.max(0, Math.min(100, 100 - vectorDeductions.transport)),
+      label: vectorDeductions.transport === 0 ? "Hardened" : (vectorDeductions.transport < 15 ? "Guarded" : "Vulnerable")
+    },
+    content: {
+      score: Math.max(0, Math.min(100, 100 - vectorDeductions.content)),
+      label: vectorDeductions.content === 0 ? "Clean" : (vectorDeductions.content < 20 ? "Caution" : "Suspicious")
+    },
+    telemetry: {
+      score: Math.max(0, Math.min(100, 100 - vectorDeductions.telemetry)),
+      label: vectorDeductions.telemetry === 0 ? "Minimal" : (vectorDeductions.telemetry < 16 ? "Moderate" : "Heavy Tracking")
+    },
+    governance: {
+      score: Math.max(0, Math.min(100, 100 - vectorDeductions.governance)),
+      label: vectorDeductions.governance === 0 ? "Transparent" : (vectorDeductions.governance < 15 ? "Deficient" : "Unverified")
+    }
+  };
 
   return {
     score,
@@ -106,6 +161,7 @@ function calculateRiskScore(findings = []) {
       color: verdictObj.color
     },
     counts,
+    vectors,
     totalDeduction: Math.round(totalDeduction),
     scoringVersion: scoring.version
   };

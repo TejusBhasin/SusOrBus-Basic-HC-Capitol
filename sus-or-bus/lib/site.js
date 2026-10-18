@@ -7,6 +7,7 @@ const { analyzeSecurityHeaders } = require("./security-headers");
 const { extractPolicyLinks, inspectPolicies, buildTermsFindings } = require("./policy-analyzer");
 const { runBrowserAnalysis } = require("./browser-client");
 const { normalizeAndDeduplicateFindings, calculateRiskScore } = require("./scorer");
+const { generateAiSynthesis } = require("./synthesizer");
 const { metadata, findings: kbFindings, renderTemplate } = require("./knowledge");
 const { DnsSecurityError } = require("./dns");
 
@@ -103,7 +104,9 @@ async function runFullScan(targetInput, options = {}) {
   }
 
   const deduplicatedFindings = normalizeAndDeduplicateFindings(allFindings);
-  const { score, verdict, verdictDetails, counts } = calculateRiskScore(deduplicatedFindings);
+  const { score, verdict, verdictDetails, counts, vectors } = calculateRiskScore(deduplicatedFindings, {
+    trackers: staticResult.trackers
+  });
 
   // Extract security headers for technical summary display
   const secHeaders = {};
@@ -134,6 +137,20 @@ async function runFullScan(targetInput, options = {}) {
     browserBehavior: browserResult.status
   };
 
+  const aiSynthesis = generateAiSynthesis({
+    site: targetHost,
+    url: page.url,
+    score,
+    verdict,
+    verdictDetails,
+    counts,
+    findings: deduplicatedFindings,
+    trackers: staticResult.trackers,
+    policies,
+    coverage,
+    vectors
+  });
+
   return {
     // Backward-compatible core response shape
     site: targetHost,
@@ -144,6 +161,8 @@ async function runFullScan(targetInput, options = {}) {
     verdict,
     verdictDetails,
     counts,
+    vectors,
+    aiSynthesis,
     findings: deduplicatedFindings,
     policies,
     termsFindings,
