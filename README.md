@@ -1,6 +1,6 @@
-# SusOrBus 🛡️
+# Sus Or Bus
 
-**SusOrBus** is an evidence-based website safety, privacy, and risk analyzer. Paste any link before clicking to receive a transparent 0–100 risk score, verdict (`BUS`, `MILDLY SUS`, or `SUS`), granular technical evidence, tracker disclosures, terms & privacy analysis, and an isolated sandbox preview.
+**Sus Or Bus** is an evidence-based website safety, privacy, and risk analyzer. Paste any link before clicking to receive a transparent 0–100 risk score, verdict (`BUS`, `MILDLY SUS`, or `SUS`), granular technical evidence, tracker disclosures, terms & privacy analysis, and an isolated sandbox preview.
         -
 Sus Or Bus's main goal is to analyze if a online medium such as a site is safe or not. It works by using Beautiful Soup to fetch the page and then sending a Beautiful Soup scraper to every page indexed by Google Search Console. Alongside that, it also goes to multiple variations of terms and privacy page endings. After that, the data gets filtered and organized in different programs that are running in the code, and then it's presented neatly for the viewer, along with a logic score. No AI is involved in this process, and the black box uses open-source algorithms that are contained in this repository, and decision-making weighted algorithms.
 
