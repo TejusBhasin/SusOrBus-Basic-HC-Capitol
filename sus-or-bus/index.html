@@ -216,6 +216,10 @@
         #history { max-width: 760px; margin: 0 auto 16px; }
         #history .h-item { display: flex; justify-content: space-between; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 5px; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; }
         #history .h-score { font-weight: 700; }
+        #publicFeed { max-width: 760px; margin: 0 auto 16px; }
+        #publicFeed .h-item { display: flex; justify-content: space-between; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 5px; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; }
+        #publicFeed .h-score { font-weight: 700; }
+        .feed-title { color: var(--muted); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 8px; }
         .status.loading { animation: pulse 1s ease-in-out infinite; }
         @keyframes pulse { 50% { opacity: 0.35; } }
         .status { text-align: center; color: var(--muted); }
@@ -238,6 +242,8 @@
             <button onclick="check()">Check</button>
         </div>
         <div id="history"></div>
+        <p class="feed-title">public searches</p>
+        <div id="publicFeed"></div>
         <div id="result" class="hidden">
             <div class="report-head">SUS OR BUS — SITE SAFETY REPORT</div>
             <div class="result-top">
@@ -424,6 +430,26 @@
             }
         }
 
+        async function renderPublic() {
+            let items = [];
+            try {
+                const r = await fetch("/public");
+                items = await r.json();
+            } catch { items = []; }
+            const box = $("publicFeed");
+            box.replaceChildren();
+            if (items.length === 0) {
+                box.append(el("p", "status", "No public searches yet."));
+                return;
+            }
+            for (const it of items) {
+                const row = el("div", "h-item");
+                row.append(el("span", null, it.site), el("span", "h-score", it.score + " · " + it.verdict));
+                row.addEventListener("click", () => { $("url").value = it.site; check(); });
+                box.append(row);
+            }
+        }
+
         async function check() {
             const site = $("url").value.trim();
             if (!site) { $("status").textContent = "Type a website first."; return; }
@@ -438,9 +464,10 @@
             render(data);
             clearTimeout(pubTimer);
             $("pubNote").classList.remove("hidden");
-            pubTimer = setTimeout(() => {
+            pubTimer = setTimeout(async () => {
                 $("pubNote").classList.add("hidden");
-                fetch("/publish", { method: "POST", body: JSON.stringify({ site: data.site, score: data.score, verdict: data.verdict }) });
+                await fetch("/publish", { method: "POST", body: JSON.stringify({ site: data.site, score: data.score, verdict: data.verdict }) });
+                renderPublic();
             }, 20000);
             let hist = [];
             try { hist = JSON.parse(localStorage.getItem("history")) || []; } catch { hist = []; }
@@ -483,6 +510,7 @@
         });
 
         renderHistory();
+        renderPublic();
 
         $("url").addEventListener("keydown", e => { if (e.key === "Enter") check(); });
         $("newScanBtn").addEventListener("click", () => {
