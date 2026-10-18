@@ -651,8 +651,38 @@ function generateAiSynthesis(context = {}) {
   if (hasTrackerGap) recs.push({ action: "Update Privacy Policy to explicitly disclose third-party analytics partners", points: "+8 pts" });
   if (hasNoPolicy) recs.push({ action: "Publish formal Privacy Policy and Terms of Service documents", points: "+14 pts" });
 
+  const summaryBullets = [
+    {
+      category: "Transport",
+      text: isHttps ? (hasStrongHsts ? "TLS encryption strictly enforced with long-duration HSTS" : "TLS encryption active; HTTP Strict Transport Security (HSTS) lacks preload") : "Unencrypted cleartext HTTP detected (traffic exposed to interception)",
+      level: isHttps ? (hasStrongHsts ? "good" : "warning") : "bad"
+    },
+    {
+      category: "Forms & Input",
+      text: hasCrossOriginPassword ? "Password input configured to submit cross-origin to an untrusted external destination" : (hasPasswordDetected ? "Standard login form present submitting to verified domain" : "No credential or password input fields detected on page"),
+      level: hasCrossOriginPassword ? "bad" : "good"
+    },
+    {
+      category: "Telemetry",
+      text: trackers.length === 0 ? "Zero third-party trackers or advertising beacons detected" : (trackers.length + " third-party tracking/analytics service(s) detected (" + trackers.map(t => t.provider || t.domain).slice(0, 3).join(", ") + ")"),
+      level: trackers.length === 0 ? "good" : (trackers.length > 3 ? "warning" : "good")
+    },
+    {
+      category: "Governance",
+      text: hasSaleDenied ? "Privacy policy explicitly guarantees personal data is not sold" : (hasNoPolicy ? "No privacy policy or terms of service documentation found" : (hasTrackerGap ? "Third-party trackers active on page but not acknowledged in privacy policy" : "Standard privacy documentation published")),
+      level: hasSaleDenied ? "good" : (hasNoPolicy || hasTrackerGap ? "warning" : "good")
+    },
+    {
+      category: "Guidance",
+      text: score >= 70 ? "Baseline security standards met; appropriate for standard interaction" : (score >= 40 ? "Configuration gaps and telemetry exposure warrant visitor caution" : "High risk indicators detected; avoid credential submission or downloads"),
+      level: score >= 70 ? "good" : (score >= 40 ? "warning" : "bad")
+    }
+  ];
+
   return {
-    badge: "HEURISTIC AI SYNTHESIS — V2.6",
+    summaryTitle: "Key Security Observations",
+    summaryBullets: summaryBullets,
+    badge: "SECURITY ASSESSMENT",
     headline: "Calibrated Trust Index: " + score + "/100 (" + verdict + ") — " + riskProfile,
     executiveSummary: [p1, p2, p3].join("\\n\\n"),
     paragraphs: [p1, p2, p3],
@@ -661,7 +691,7 @@ function generateAiSynthesis(context = {}) {
       "Telemetry: " + (trackers.length === 0 ? "Zero third-party trackers detected" : (trackers.length + " active tracker service(s) identified")),
       "Governance: " + (hasSaleDenied ? "Explicit data selling denial confirmed" : (hasNoPolicy ? "Missing privacy and terms disclosures" : (hasTrackerGap ? "Tracker disclosure transparency gap" : "Basic legal disclosures present")))
     ],
-    riskProfile,
+    riskProfile: riskProfile,
     confidenceScore: 96,
     skepticismCalibration: "Zero-Trust Deterministic Heuristics",
     actionableRecommendations: recs.slice(0, 4),

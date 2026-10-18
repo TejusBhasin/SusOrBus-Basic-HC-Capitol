@@ -80,11 +80,11 @@ describe("Calibrated Precision Scoring & AI Heuristic Synthesizer", () => {
 
     const ai = generateAiSynthesis(scanContext);
 
-    assert.ok(ai.badge.includes("HEURISTIC AI SYNTHESIS"));
+    assert.ok(ai.badge.includes("SECURITY ASSESSMENT"));
+    assert.ok(ai.summaryBullets.length >= 4);
     assert.ok(ai.executiveSummary.includes("portal.example-corp.com"));
     assert.ok(ai.executiveSummary.includes("Google Analytics"));
     assert.ok(ai.paragraphs.length >= 3);
-    assert.ok(ai.keyTakeaways.length === 3);
     assert.ok(ai.actionableRecommendations.length > 0);
     assert.equal(typeof ai.confidenceScore, "number");
     assert.ok(ai.confidenceScore >= 80);

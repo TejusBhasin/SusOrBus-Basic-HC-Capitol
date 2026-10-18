@@ -250,119 +250,128 @@
             border: 1px solid rgba(46, 213, 115, 0.25);
         }
 
-        .ai-card {
+        .vectors-card {
             background: var(--panel);
-            border: 1px solid rgba(46, 213, 115, 0.35);
+            border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 16px;
+            padding: 14px 16px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
-        .ai-header {
+        .vectors-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
             margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-        }
-        .ai-badge {
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #2ed573;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .ai-radar-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #2ed573;
-            box-shadow: 0 0 8px #2ed573;
-            animation: pulse-dot 1.5s infinite;
-        }
-        @keyframes pulse-dot {
-            0% { transform: scale(0.9); opacity: 0.7; }
-            50% { transform: scale(1.3); opacity: 1; }
-            100% { transform: scale(0.9); opacity: 0.7; }
-        }
-        .ai-confidence {
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--muted);
-            font-weight: 600;
+            font-weight: 700;
         }
-        .ai-body {
-            font-size: 13.5px;
-            line-height: 1.65;
-            color: var(--text);
-            margin-bottom: 14px;
-        }
-        .ai-body p { margin-bottom: 10px; }
-        .ai-body p:last-child { margin-bottom: 0; }
-        .ai-vectors {
+        .vectors-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-bottom: 14px;
-            background: rgba(0, 0, 0, 0.15);
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
+            gap: 12px;
         }
-        .ai-vec-item { display: flex; flex-direction: column; gap: 4px; }
-        .ai-vec-head {
+        .vec-item { display: flex; flex-direction: column; gap: 4px; }
+        .vec-head {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
+            font-size: 11.5px;
             color: var(--muted);
             font-weight: 600;
         }
-        .ai-vec-score { color: var(--text); font-weight: 700; }
-        .ai-vec-bar {
-            height: 5px;
+        .vec-score { color: var(--text); font-weight: 700; }
+        .vec-bar {
+            height: 6px;
             background: var(--border);
             border-radius: 3px;
             overflow: hidden;
         }
-        .ai-vec-fill {
+        .vec-fill {
             height: 100%;
             border-radius: 3px;
             transition: width 0.4s ease;
         }
-        .ai-vec-fill.bus { background: #2ed573; }
-        .ai-vec-fill.mid { background: #ffa502; }
-        .ai-vec-fill.sus { background: #ff4757; }
-        .ai-vec-label { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+        .vec-fill.bus { background: #2ed573; }
+        .vec-fill.mid { background: #ffa502; }
+        .vec-fill.sus { background: #ff4757; }
+        .vec-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .ai-takeaways {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border);
-            font-size: 12px;
-            color: var(--muted);
+        .obs-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
         }
-        .ai-takeaways ul { margin: 6px 0 10px 18px; line-height: 1.5; }
-        .ai-recs-title { font-weight: 700; color: var(--text); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; }
-        .ai-rec-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
-        .ai-rec-item {
+        .obs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .obs-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: var(--text);
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .obs-tag {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .obs-tag.good {
+            background: rgba(46, 213, 115, 0.15);
+            color: #2ed573;
+            border: 1px solid rgba(46, 213, 115, 0.3);
+        }
+        .obs-tag.warning {
+            background: rgba(255, 165, 2, 0.15);
+            color: #ffa502;
+            border: 1px solid rgba(255, 165, 2, 0.3);
+        }
+        .obs-tag.bad {
+            background: rgba(255, 71, 87, 0.15);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.3);
+        }
+        .obs-recs-title {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 14px 0 8px 0;
+        }
+        .obs-rec-list { display: flex; flex-direction: column; gap: 6px; }
+        .obs-rec-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 8px;
-            background: var(--panel);
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border);
-            padding: 4px 8px;
+            padding: 6px 10px;
             border-radius: 6px;
-            font-size: 11.5px;
+            font-size: 12px;
         }
-        .ai-rec-pts { font-weight: 700; color: #2ed573; font-size: 11px; }
+        .obs-rec-pts { font-weight: 700; color: #2ed573; font-size: 11.5px; white-space: nowrap; }
 
         #techBox ol { margin: 6px 0 12px 22px; color: var(--muted); font-size: 13px; line-height: 1.6; }
 
@@ -455,15 +464,13 @@
 
             <div class="coverage-bar" id="coverageBar"></div>
 
-            <section id="aiSynthesisSection" class="ai-card hidden">
-                <div class="ai-header">
-                    <span class="ai-badge"><span class="ai-radar-dot"></span> <span id="aiBadge">HEURISTIC AI SYNTHESIS</span></span>
-                    <span class="ai-confidence" id="aiConfidence"></span>
+            <div id="vectorsCard" class="vectors-card hidden">
+                <div class="vectors-header">
+                    <span>Risk Vectors &amp; Defense Depth</span>
+                    <span id="vectorsMeta">Audited Baseline</span>
                 </div>
-                <div class="ai-body" id="aiBody"></div>
-                <div class="ai-vectors" id="aiVectors"></div>
-                <div class="ai-takeaways" id="aiTakeaways"></div>
-            </section>
+                <div class="vectors-grid" id="vectorsGrid"></div>
+            </div>
 
             <p id="pubNote" class="status hidden">This search will be public in 20s.
             <button id="hideBtn" class="mode-btn" style="width:auto;padding:6px 12px;font-size:12px;">Don't show in public searches</button></p>
@@ -481,6 +488,12 @@
             <button id="modeBtn" class="mode-btn">nerd mode: off</button>
             <button id="pdfBtn" class="mode-btn">export PDF</button>
             <button id="themeBtn" class="mode-btn">light mode</button>
+
+            <section id="observationsSection" class="obs-card hidden">
+                <h2>key security observations</h2>
+                <ul id="observationsList" class="obs-list"></ul>
+                <div id="observationsRecs"></div>
+            </section>
 
             <section id="trackerSection">
                 <h2>trackers &amp; third parties</h2>
@@ -715,26 +728,19 @@
             }
         }
 
-        function renderAiSynthesis(ai, vectors, score) {
-            const sec = $("aiSynthesisSection");
-            if (!ai) {
-                sec.classList.add("hidden");
+        function renderVectors(vectors, confidenceScore) {
+            const card = $("vectorsCard");
+            const grid = $("vectorsGrid");
+            if (!vectors || Object.keys(vectors).length === 0) {
+                card.classList.add("hidden");
                 return;
             }
-            sec.classList.remove("hidden");
-            $("aiBadge").textContent = ai.badge || "HEURISTIC AI SYNTHESIS";
-            $("aiConfidence").textContent = "Confidence: " + (ai.confidenceScore || 96) + "% · Zero-Trust Baseline";
-
-            const body = $("aiBody");
-            body.replaceChildren();
-            const paras = ai.paragraphs || [ai.executiveSummary || ""];
-            for (const p of paras) {
-                body.append(el("p", null, p));
+            card.classList.remove("hidden");
+            if (confidenceScore) {
+                $("vectorsMeta").textContent = "Confidence: " + confidenceScore + "% · Zero-Trust Baseline";
             }
+            grid.replaceChildren();
 
-            const vecBox = $("aiVectors");
-            vecBox.replaceChildren();
-            const vecs = ai.vectors || vectors || {};
             const vecTitles = {
                 transport: "Transport & TLS",
                 content: "Content & Scripts",
@@ -742,36 +748,49 @@
                 governance: "Legal Governance"
             };
             for (const [key, label] of Object.entries(vecTitles)) {
-                const v = vecs[key] || { score: 100, label: "Hardened" };
-                const item = el("div", "ai-vec-item");
-                const head = el("div", "ai-vec-head");
-                head.append(el("span", null, label), el("span", "ai-vec-score", v.score + "%"));
-                const bar = el("div", "ai-vec-bar");
-                const fill = el("div", "ai-vec-fill " + scoreClass(v.score));
+                const v = vectors[key] || { score: 100, label: "Hardened" };
+                const item = el("div", "vec-item");
+                const head = el("div", "vec-head");
+                head.append(el("span", null, label), el("span", "vec-score", v.score + "%"));
+                const bar = el("div", "vec-bar");
+                const fill = el("div", "vec-fill " + scoreClass(v.score));
                 fill.style.width = Math.max(6, v.score) + "%";
                 bar.append(fill);
-                item.append(head, bar, el("span", "ai-vec-label", v.label));
-                vecBox.append(item);
+                item.append(head, bar, el("span", "vec-label", v.label));
+                grid.append(item);
+            }
+        }
+
+        function renderObservations(ai) {
+            const sec = $("observationsSection");
+            const list = $("observationsList");
+            const recsBox = $("observationsRecs");
+            if (!ai || (!ai.summaryBullets && !ai.keyTakeaways)) {
+                sec.classList.add("hidden");
+                return;
+            }
+            sec.classList.remove("hidden");
+            list.replaceChildren();
+            recsBox.replaceChildren();
+
+            const bullets = ai.summaryBullets || (ai.keyTakeaways || []).map(t => ({ category: "Security", text: t, level: "good" }));
+            for (const b of bullets) {
+                const li = el("li", "obs-item");
+                const tag = el("span", "obs-tag " + (b.level || "good"), b.category || "Security");
+                const txt = el("span", null, b.text);
+                li.append(tag, txt);
+                list.append(li);
             }
 
-            const takeaways = $("aiTakeaways");
-            takeaways.replaceChildren();
-            if (ai.keyTakeaways && ai.keyTakeaways.length > 0) {
-                const ul = el("ul");
-                for (const t of ai.keyTakeaways) {
-                    ul.append(el("li", null, t));
-                }
-                takeaways.append(el("div", "ai-recs-title", "Automated Takeaways"), ul);
-            }
             if (ai.actionableRecommendations && ai.actionableRecommendations.length > 0) {
-                const recTitle = el("div", "ai-recs-title", "What Would Raise This Trust Index?");
-                const recList = el("div", "ai-rec-list");
+                const recTitle = el("div", "obs-recs-title", "Actions That Would Improve Score");
+                const recList = el("div", "obs-rec-list");
                 for (const r of ai.actionableRecommendations) {
-                    const rItem = el("div", "ai-rec-item");
-                    rItem.append(el("span", null, r.action), el("span", "ai-rec-pts", r.points));
+                    const rItem = el("div", "obs-rec-item");
+                    rItem.append(el("span", null, r.action), el("span", "obs-rec-pts", r.points));
                     recList.append(rItem);
                 }
-                takeaways.append(recTitle, recList);
+                recsBox.append(recTitle, recList);
             }
         }
 
@@ -790,7 +809,8 @@
             $("meta").textContent = data.url + "  •  " + new Date(data.checkedAt).toLocaleString() + "  •  HTTP " + data.status;
 
             renderCoverage(data.coverage);
-            renderAiSynthesis(data.aiSynthesis, data.vectors, data.score);
+            renderVectors(data.vectors || (data.aiSynthesis && data.aiSynthesis.vectors), data.aiSynthesis ? data.aiSynthesis.confidenceScore : null);
+            renderObservations(data.aiSynthesis);
 
             $("cGood").textContent = data.counts.good;
             $("cWarn").textContent = data.counts.warning;
