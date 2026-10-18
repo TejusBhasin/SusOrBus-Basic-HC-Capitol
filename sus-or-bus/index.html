@@ -7,9 +7,25 @@
     <title>Sus or Bus</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0b0f14;
+            --panel: #161b22;
+            --border: #30363d;
+            --text: #e6e6e6;
+            --muted: #8b949e;
+            --code: #a5d6ff;
+        }
+        body.light {
+            --bg: #f5f7fa;
+            --panel: #ffffff;
+            --border: #d0d7de;
+            --text: #1f2328;
+            --muted: #57606a;
+            --code: #0550ae;
+        }
         body {
-            background: #0b0f14;
-            color: #e6e6e6;
+            background: var(--bg);
+            color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
             padding: 24px;
@@ -18,16 +34,16 @@
         h1 { font-size: 44px; text-align: center; letter-spacing: 2px; margin-bottom: 6px; }
         h1 .sus { color: #ff4757; }
         h1 .bus { color: #2ed573; }
-        .tagline { text-align: center; color: #8b949e; margin-bottom: 28px; }
+        .tagline { text-align: center; color: var(--muted); margin-bottom: 28px; }
         .search { display: flex; gap: 10px; margin-bottom: 28px; }
         input {
             flex: 1;
             padding: 14px 16px;
             font-size: 16px;
             border-radius: 5px;
-            border: 1px solid #30363d;
-            background: #161b22;
-            color: #e6e6e6;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text);
             outline: none;
         }
 
@@ -56,7 +72,7 @@
         .hidden { display: none; }
 
         .result-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
-        .eyebrow { color: #8b949e; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+        .eyebrow { color: var(--muted); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
         .verdict { font-size: 36px; font-weight: 800; }
         .verdict.bus { color: #2ed573; }
         .verdict.mid { color: #ffa502; }
@@ -65,27 +81,27 @@
         .score-num.bus { color: #2ed573; }
         .score-num.mid { color: #ffa502; }
         .score-num.sus { color: #ff4757; }
-        .meta { color: #8b949e; font-size: 14px; margin-top: 6px; word-break: break-all; }
-        .verdict-note { color: #8b949e; font-size: 12px; margin-top: 4px; }
+        .meta { color: var(--muted); font-size: 14px; margin-top: 6px; word-break: break-all; }
+        .verdict-note { color: var(--muted); font-size: 12px; margin-top: 4px; }
 
         .counts { display: flex; gap: 10px; margin-bottom: 14px; }
-        .legend { color: #8b949e; font-size: 12px; margin: -6px 0 14px; text-align: center; }
+        .legend { color: var(--muted); font-size: 12px; margin: -6px 0 14px; text-align: center; }
         .count {
             flex: 1;
-            background: #161b22;
-            border: 1px solid #30363d;
+            background: var(--panel);
+            border: 1px solid var(--border);
             border-radius: 5px;
             padding: 12px;
             text-align: center;
         }
         .count span { display: block; font-size: 28px; font-weight: 800; }
-        .count label { color: #8b949e; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+        .count label { color: var(--muted); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
         .count.good span { color: #2ed573; }
         .count.warning span { color: #ffa502; }
         .count.bad span { color: #ff4757; }
 
         .bar { display: flex; gap: 2px; height: 14px; margin-bottom: 14px; }
-        .bar .seg { flex: 1; background: #161b22; border-radius: 5px; transition: background 0.3s; }
+        .bar .seg { flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 5px; transition: background 0.3s; }
         .bar.bus .seg.on { background: #2ed573; }
         .bar.mid .seg.on { background: #ffa502; }
         .bar.sus .seg.on { background: #ff4757; }
@@ -94,27 +110,27 @@
             display: block;
             width: 100%;
             margin-bottom: 20px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            color: #e6e6e6;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text);
             font-weight: 600;
         }
-        .mode-btn:hover { border-color: #30363d; background: #161b22; }
+        .mode-btn:hover { border-color: var(--border); background: var(--panel); }
 
         section { margin-bottom: 24px; }
         h2 {
             font-size: 15px;
             letter-spacing: 2px;
             text-transform: uppercase;
-            color: #8b949e;
+            color: var(--muted);
             margin-bottom: 10px;
-            border-bottom: 1px solid #30363d;
+            border-bottom: 1px solid var(--border);
             padding-bottom: 6px;
         }
 
         .finding {
-            background: #161b22;
-            border: 1px solid #30363d;
+            background: var(--panel);
+            border: 1px solid var(--border);
             border-left: 4px solid;
             border-radius: 5px;
             padding: 12px 14px;
@@ -131,34 +147,34 @@
         .finding.warning .badge { color: #ffa502; }
         .finding.bad .badge { color: #ff4757; }
         .cat {
-            color: #8b949e;
+            color: var(--muted);
             font-size: 11px;
             letter-spacing: 1px;
             text-transform: uppercase;
-            border: 1px solid #30363d;
+            border: 1px solid var(--border);
             border-radius: 5px;
             padding: 2px 8px;
         }
         .f-title { font-weight: 700; margin-bottom: 4px; }
         .finding p { margin-top: 4px; }
-        .nerd-text { display: none; color: #8b949e; }
+        .nerd-text { display: none; color: var(--muted); }
         body.nerd .nerd-text { display: block; }
         body.nerd .simple-text { display: none; }
         .nerd-only { display: none; }
         body.nerd .nerd-only { display: block; }
-        #techBox ol { margin: 6px 0 12px 22px; color: #8b949e; font-size: 13px; line-height: 1.6; }
+        #techBox ol { margin: 6px 0 12px 22px; color: var(--muted); font-size: 13px; line-height: 1.6; }
 
         .policy-url { color: #58a6ff; font-size: 14px; word-break: break-all; margin-top: 6px; }
 
-        details { background: #161b22; border: 1px solid #30363d; border-radius: 5px; padding: 10px 14px; }
-        summary { cursor: pointer; font-weight: 600; color: #e6e6e6; }
+        details { background: var(--panel); border: 1px solid var(--border); border-radius: 5px; padding: 10px 14px; }
+        summary { cursor: pointer; font-weight: 600; color: var(--text); }
         pre {
             margin-top: 10px;
             max-height: 400px;
             overflow: auto;
             font-size: 12px;
             line-height: 1.4;
-            color: #a5d6ff;
+            color: var(--code);
             white-space: pre-wrap;
             word-break: break-all;
         }
@@ -166,7 +182,7 @@
         iframe {
             width: 100%;
             height: 320px;
-            border: 1px solid #30363d;
+            border: 1px solid var(--border);
             border-radius: 5px;
             background: #fff;
         }
@@ -188,7 +204,7 @@
         .preview-overlay.show { display: flex; }
         .overlay-link { color: #fff; margin-left: 6px; }
 
-        .status { text-align: center; color: #8b949e; }
+        .status { text-align: center; color: var(--muted); }
     </style>
 </head>
 
@@ -225,6 +241,7 @@
 
             <button id="modeBtn" class="mode-btn">nerd mode: off</button>
             <button id="pdfBtn" class="mode-btn">export PDF</button>
+            <button id="themeBtn" class="mode-btn">light mode</button>
             <section>
                 <h2>terms &amp; privacy check</h2>
                 <div id="termsBox"></div>
@@ -389,6 +406,17 @@
             document.querySelector("details").open = true;
             window.print();
         });
+
+        $("themeBtn").addEventListener("click", () => {
+            const light = document.body.classList.toggle("light");
+            localStorage.setItem("theme", light ? "light" : "dark");
+            $("themeBtn").textContent = light ? "dark mode" : "light mode";
+        });
+
+        if (localStorage.getItem("theme") === "light") {
+            document.body.classList.add("light");
+            $("themeBtn").textContent = "dark mode";
+        }
 
         $("url").addEventListener("keydown", e => { if (e.key === "Enter") check(); });
     </script>
