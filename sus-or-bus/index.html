@@ -75,9 +75,10 @@
             border-radius: 12px;
             background: #ff4757;
             color: #fff;
-            cursor: default;
+            cursor: pointer;
         }
-        button:hover { background: #ff4757; }
+        button:hover { background: #e04050; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
         input, button, .cat, .bar .seg { border-radius: 999px; }
         .hidden { display: none; }
 
@@ -93,6 +94,28 @@
         .score-num.sus { color: #ff4757; }
         .meta { color: var(--muted); font-size: 14px; margin-top: 6px; word-break: break-all; }
         .verdict-note { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+        .coverage-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .cov-pill {
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .cov-pill.done { border-color: rgba(46, 213, 115, 0.4); color: #2ed573; }
+        .cov-pill.warn { border-color: rgba(255, 165, 2, 0.4); color: #ffa502; }
+        .cov-pill.unavail { border-color: var(--border); color: var(--muted); opacity: 0.8; }
 
         .counts { display: flex; gap: 10px; margin-bottom: 14px; }
         .legend { color: var(--muted); font-size: 12px; margin: -6px 0 14px; text-align: center; }
@@ -151,8 +174,8 @@
         .finding.good { border-left-color: #2ed573; }
         .finding.warning { border-left-color: #ffa502; }
         .finding.bad { border-left-color: #ff4757; }
-        .f-head { margin-bottom: 4px; }
-        .badge { font-weight: 700; font-size: 12px; letter-spacing: 1px; margin-right: 8px; }
+        .f-head { margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+        .badge { font-weight: 700; font-size: 12px; letter-spacing: 1px; margin-right: 4px; }
         .finding.good .badge { color: #2ed573; }
         .finding.warning .badge { color: #ffa502; }
         .finding.bad .badge { color: #ff4757; }
@@ -172,6 +195,44 @@
         body.nerd .simple-text { display: none; }
         .nerd-only { display: none; }
         body.nerd .nerd-only { display: block; }
+
+        .f-nerd-box {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .f-nerd-field { margin-bottom: 4px; }
+        .f-nerd-field strong { color: var(--text); }
+        .f-subtags { display: flex; gap: 6px; margin-top: 6px; }
+        .f-subtag {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+
+        .tracker-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tracker-chip {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+        .tracker-chip strong { color: var(--text); }
+        .tracker-chip .t-cat {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-left: 6px;
+        }
+
         #techBox ol { margin: 6px 0 12px 22px; color: var(--muted); font-size: 13px; line-height: 1.6; }
 
         .policy-url { color: #58a6ff; font-size: 14px; word-break: break-all; margin-top: 6px; }
@@ -212,13 +273,13 @@
             text-align: center;
         }
         .preview-overlay.show { display: flex; }
-        .overlay-link { color: var(--overlay-text); margin-left: 6px; }
+        .overlay-link { color: var(--overlay-text); margin-left: 6px; text-decoration: underline; }
 
         #history { max-width: 760px; margin: 0 auto 16px; }
-        #history .h-item { display: flex; justify-content: space-between; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; }
+        #history .h-item { display: flex; justify-content: space-between; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; cursor: pointer; }
         #history .h-score { font-weight: 700; }
         #publicFeed { max-width: 760px; margin: 0 auto 16px; }
-        #publicFeed .h-item { display: flex; justify-content: space-between; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; }
+        #publicFeed .h-item { display: flex; justify-content: space-between; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; cursor: pointer; }
         #publicFeed .h-score { font-weight: 700; }
         .feed-title { color: var(--muted); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 8px; }
         .status.loading { animation: pulse 1s ease-in-out infinite; }
@@ -239,26 +300,29 @@
         <h1><span class="sus">SUS</span> or <span class="bus">BUS</span></h1>
         <p class="tagline">Is that link safe to click? Find out before you find out.</p>
         <div class="search">
-            <input id="url" placeholder="Paste a link... e.g. example.com" />
-            <button onclick="check()">Check</button>
+            <input id="url" placeholder="Paste a link... e.g. example.com" aria-label="Website address to check" />
+            <button id="checkBtn" onclick="check()">Check</button>
         </div>
         <div id="history"></div>
         <p class="feed-title">public searches</p>
         <div id="publicFeed"></div>
         <div id="result" class="hidden">
-            <div class="report-head">SUS OR BUS — SITE SAFETY REPORT</div>
+            <div class="report-head" id="reportHead">SUS OR BUS — SITE SAFETY REPORT</div>
             <div class="result-top">
                 <div>
-                    <p class="eyebrow">New check</p>
+                    <p class="eyebrow" id="eyebrowText">Evidence-based assessment</p>
                     <div id="verdict" class="verdict"></div>
-                    <p class="verdict-note">automated heuristic scan — no findings never means guaranteed safe</p>
+                    <p class="verdict-note" id="verdictNote">automated heuristic scan — absence of findings never guarantees safety</p>
                     <p id="meta" class="meta"></p>
                 </div>
                 <div>
                     <div id="scoreNum" class="score-num"></div>
-                    <button id="copyBtn" class="mode-btn" style="width:auto; padding:6px 12px; font-size:12px;">copy result</button> <button id="newScanBtn" class="mode-btn" style="width:auto; padding:6px 12px; font-size:12px;">new scan</button>
+                    <button id="copyBtn" class="mode-btn" style="width:auto; padding:6px 12px; font-size:12px;">copy result</button>
+                    <button id="newScanBtn" class="mode-btn" style="width:auto; padding:6px 12px; font-size:12px;">new scan</button>
                 </div>
             </div>
+
+            <div class="coverage-bar" id="coverageBar"></div>
 
             <p id="pubNote" class="status hidden">This search will be public in 20s.
             <button id="hideBtn" class="mode-btn" style="width:auto;padding:6px 12px;font-size:12px;">Don't show in public searches</button></p>
@@ -269,13 +333,24 @@
                 <div class="count bad"><span id="cBad">0</span><label>bad</label></div>
             </div>
 
-            <p class="legend">good = verified safe signal · warning = needs your attention · bad = serious risk · checks on this device: <span id="checksRun">0</span></p>
+            <p class="legend" id="legendText">good = verified safety indicator · warning = requires attention · bad = serious risk flag · checks on this device: <span id="checksRun">0</span></p>
 
             <div class="bar" id="bar"></div>
 
             <button id="modeBtn" class="mode-btn">nerd mode: off</button>
             <button id="pdfBtn" class="mode-btn">export PDF</button>
             <button id="themeBtn" class="mode-btn">light mode</button>
+
+            <section id="trackerSection">
+                <h2>trackers &amp; third parties</h2>
+                <div id="trackerBox"></div>
+            </section>
+
+            <section id="browserSection">
+                <h2>browser behavior analysis</h2>
+                <div id="browserBox"></div>
+            </section>
+
             <section>
                 <h2>terms &amp; privacy check</h2>
                 <div id="termsBox"></div>
@@ -297,7 +372,7 @@
             <section id="previewSection">
                 <h2>preview</h2>
                 <div class="preview-wrap">
-                    <iframe id="preview" title="site preview"></iframe>
+                    <iframe id="preview" title="site preview" sandbox="allow-same-origin"></iframe>
                     <div id="previewOverlay" class="preview-overlay"><span id="overlayMsg"></span> <a id="overlayLink" class="overlay-link" target="_blank" rel="noopener">Open the site directly</a></div>
                 </div>
             </section>
@@ -307,15 +382,84 @@
                 <div id="findings"></div>
             </section>
 
-            <p class="limitations">This report summarizes automated heuristic checks on the fetched page. "No threats detected" is NOT a guarantee of safety. Preview availability depends on the target site's own embedding policy.</p>
+            <p class="limitations" id="limitationsText">This report summarizes automated heuristic checks on the fetched page. "No threats detected" is NOT a guarantee of safety. Preview availability depends on the target site's own embedding policy.</p>
         </div>
 
         <p id="status" class="status">Paste a link above and hit Check to run your first scan.</p>
     </div>
 
     <script>
+        // Centralized Catalog Fallback (guarantees 100% offline functionality without external dependencies)
+        const CATALOG = {
+            status: {
+                IDLE: "Paste a link above and hit Check to run your first scan.",
+                ANALYZING: "Analyzing {site} ...",
+                FAILED: "Could not check {site} ({error})"
+            },
+            emptyStates: {
+                NO_HISTORY: "No recent checks stored on this device.",
+                NO_PUBLIC_SEARCHES: "No public searches yet.",
+                NO_TRACKERS_FOUND: "No known third-party trackers or ad scripts were identified.",
+                NO_POLICY_LINKS: "No terms or privacy links detected on the page.",
+                NO_SECURITY_HEADERS: "No common security headers were sent by the server.",
+                BROWSER_UNAVAILABLE: "Browser behavior analysis is not configured in this serverless environment (static scanning active). No browser behavior was simulated or assumed."
+            },
+            coverageLabels: {
+                staticHtml: "Static HTML",
+                securityHeaders: "Security Headers",
+                redirects: "Redirect Inspection",
+                trackers: "Tracker Detection",
+                privacyPolicy: "Privacy Policy",
+                termsOfService: "Terms of Service",
+                browserBehavior: "Browser Automation"
+            },
+            categories: {
+                security: "Security",
+                privacy: "Privacy",
+                code: "Client Code",
+                content: "Content",
+                reputation: "Reputation & Domain",
+                policy: "Policies & Terms",
+                topic: "Service Topic"
+            },
+            ui: {
+                REPORT_HEAD: "SUS OR BUS — SITE SAFETY REPORT",
+                EYEBROW_NEW_CHECK: "Evidence-based assessment",
+                VERDICT_NOTE: "automated heuristic scan — absence of findings never guarantees safety",
+                LEGEND: "good = verified safety indicator · warning = requires attention · bad = serious risk flag · checks on this device: ",
+                SCORE_FORMULA_NOTE: "Score model: deterministic weighted risk deduction based on evidence severity and confidence.",
+                LIMITATIONS: "This report summarizes automated heuristic checks on the fetched page. \"No threats detected\" is NOT a guarantee of safety. Preview availability depends on the target site's own embedding policy.",
+                BUTTON_COPY: "copy result",
+                BUTTON_COPIED: "copied!",
+                BUTTON_NEW_SCAN: "new scan",
+                BUTTON_NERD_ON: "nerd mode: on",
+                BUTTON_NERD_OFF: "nerd mode: off",
+                BUTTON_DARK_MODE: "dark mode",
+                BUTTON_LIGHT_MODE: "light mode",
+                BUTTON_PDF: "export PDF"
+            }
+        };
+
         const $ = id => document.getElementById(id);
         let pubTimer = null;
+
+        function getApiBase() {
+            const h = window.location.hostname;
+            if (h === "localhost" || h === "127.0.0.1" || h === "") {
+                return "";
+            }
+            return "https://susorbus.vercel.app";
+        }
+
+        function escapeHtml(str) {
+            if (typeof str !== "string") str = String(str ?? "");
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
 
         function el(tag, cls, text) {
             const e = document.createElement(tag);
@@ -332,16 +476,96 @@
         for (let i = 0; i < 100; i++) barEl.appendChild(el("div", "seg"));
 
         function renderFinding(f) {
-            const item = el("div", "finding " + f.level);
+            const item = el("div", "finding " + (f.level || "warning"));
             const head = el("div", "f-head");
-            head.append(el("span", "badge", f.level.toUpperCase()), el("span", "cat", f.category));
-            item.append(
+            const catName = CATALOG.categories[f.category] || f.category;
+            head.append(el("span", "badge", (f.level || "warning").toUpperCase()), el("span", "cat", catName));
+
+            const content = [
                 head,
                 el("div", "f-title", f.title),
-                el("p", "simple-text", f.simple),
-                el("p", "nerd-text", f.nerd)
-            );
+                el("p", "simple-text", f.simple || f.summary)
+            ];
+
+            const nerdBox = el("div", "nerd-text f-nerd-box");
+            if (f.evidence || f.nerd) {
+                const p = el("div", "f-nerd-field");
+                p.append(el("strong", null, "Evidence: "), document.createTextNode(f.evidence || f.nerd));
+                nerdBox.append(p);
+            }
+            if (f.whyItMatters) {
+                const p = el("div", "f-nerd-field");
+                p.append(el("strong", null, "Why it matters: "), document.createTextNode(f.whyItMatters));
+                nerdBox.append(p);
+            }
+            if (f.recommendation) {
+                const p = el("div", "f-nerd-field");
+                p.append(el("strong", null, "Recommendation: "), document.createTextNode(f.recommendation));
+                nerdBox.append(p);
+            }
+
+            const subtags = el("div", "f-subtags");
+            if (f.source) subtags.append(el("span", "f-subtag", "Source: " + f.source));
+            if (f.confidence) subtags.append(el("span", "f-subtag", "Confidence: " + f.confidence));
+            if (f.severity) subtags.append(el("span", "f-subtag", "Severity: " + f.severity));
+            if (f.matchedRuleId) subtags.append(el("span", "f-subtag", "Rule: " + f.matchedRuleId));
+            nerdBox.append(subtags);
+
+            content.push(nerdBox);
+            item.replaceChildren(...content);
             return item;
+        }
+
+        function renderCoverage(coverage) {
+            const box = $("coverageBar");
+            box.replaceChildren();
+            if (!coverage) return;
+
+            for (const [k, status] of Object.entries(coverage)) {
+                const name = CATALOG.coverageLabels[k] || k;
+                const isDone = status === "completed";
+                const isWarn = status === "unreachable" || status === "not_found";
+                const icon = isDone ? "✓" : isWarn ? "⚠" : "○";
+                const pillCls = isDone ? "cov-pill done" : isWarn ? "cov-pill warn" : "cov-pill unavail";
+                box.append(el("span", pillCls, icon + " " + name + ": " + status.replace("_", " ")));
+            }
+        }
+
+        function renderTrackers(trackers) {
+            const box = $("trackerBox");
+            box.replaceChildren();
+            if (!trackers || trackers.length === 0) {
+                box.append(el("p", "policy-url", CATALOG.emptyStates.NO_TRACKERS_FOUND));
+                return;
+            }
+
+            const grid = el("div", "tracker-grid");
+            for (const t of trackers) {
+                const chip = el("div", "tracker-chip");
+                chip.append(el("strong", null, t.provider || t.domain));
+                chip.append(el("span", "t-cat", t.category + (t.isTracker ? " · tracker" : "")));
+                grid.append(chip);
+            }
+            box.append(grid);
+        }
+
+        function renderBrowserAnalysis(browser) {
+            const box = $("browserBox");
+            box.replaceChildren();
+
+            if (!browser || browser.status === "unavailable") {
+                const note = el("p", "policy-url", CATALOG.emptyStates.BROWSER_UNAVAILABLE);
+                box.append(note);
+                return;
+            }
+
+            if (browser.completed && browser.observations) {
+                const obs = browser.observations;
+                const p = el("p", "policy-url", `Observed in headless sandbox: ${obs.totalRequests} network requests, ${obs.thirdPartyRequestsCount} third-party calls, ${obs.cookieMetadata ? obs.cookieMetadata.length : 0} cookies set, ${obs.consoleErrors ? obs.consoleErrors.length : 0} console errors.`);
+                box.append(p);
+            } else {
+                box.append(el("p", "policy-url", browser.reason || "Browser analysis did not complete."));
+            }
         }
 
         async function render(data) {
@@ -349,7 +573,7 @@
             const cls = scoreClass(data.score);
 
             const v = $("verdict");
-            v.textContent = data.verdict;
+            v.textContent = data.verdictDetails ? data.verdictDetails.label : data.verdict;
             v.className = "verdict " + cls;
 
             const s = $("scoreNum");
@@ -357,6 +581,8 @@
             s.className = "score-num " + cls;
 
             $("meta").textContent = data.url + "  •  " + new Date(data.checkedAt).toLocaleString() + "  •  HTTP " + data.status;
+
+            renderCoverage(data.coverage);
 
             $("cGood").textContent = data.counts.good;
             $("cWarn").textContent = data.counts.warning;
@@ -366,9 +592,12 @@
             bar.className = "bar " + cls;
             for (let i = 0; i < bar.children.length; i++) bar.children[i].classList.toggle("on", i < data.score);
 
+            renderTrackers(data.analysis ? data.analysis.trackers : []);
+            renderBrowserAnalysis(data.analysis ? data.analysis.browser : null);
+
             const termsBox = $("termsBox");
             termsBox.replaceChildren(...data.termsFindings.map(renderFinding));
-            if (data.policies.length > 0) {
+            if (data.policies && data.policies.length > 0) {
                 for (const p of data.policies) {
                     const a = el("a", "policy-url", p.kind + ": " + p.url);
                     a.href = p.url;
@@ -377,7 +606,7 @@
                     termsBox.append(a);
                 }
             } else {
-                termsBox.append(el("p", "policy-url", "No terms or privacy links detected on the page."));
+                termsBox.append(el("p", "policy-url", CATALOG.emptyStates.NO_POLICY_LINKS));
             }
 
             $("source").textContent = data.source;
@@ -391,22 +620,32 @@
                 tech.append(ol);
             }
             const hk = data.headers ? Object.keys(data.headers) : [];
-            tech.append(el("p", "policy-url", hk.length ? "Security headers received:" : "No common security headers were sent by the server."));
+            tech.append(el("p", "policy-url", hk.length ? "Security headers received:" : CATALOG.emptyStates.NO_SECURITY_HEADERS));
             if (hk.length) {
                 const pre = el("pre");
                 pre.textContent = hk.map(k => k + ": " + data.headers[k]).join("\n");
                 tech.append(pre);
             }
-            tech.append(el("p", "policy-url", "Score formula: 100 - 30 x " + data.counts.bad + " (bad) - 10 x " + data.counts.warning + " (warning) = " + data.score + ", floor 0."));
-            tech.append(el("p", "policy-url", "Limitations: static heuristics on fetched HTML + headers. No findings never means guaranteed safe."));
+            tech.append(el("p", "policy-url", CATALOG.ui.SCORE_FORMULA_NOTE));
+            tech.append(el("p", "policy-url", CATALOG.ui.LIMITATIONS));
 
-            const pUrl = "https://susorbus.vercel.app/api/preview?site=" + encodeURIComponent(data.site);
-            const pr = await fetch(pUrl);
-            if (pr.status === 409) {
-                const info = await pr.json().catch(() => ({}));
-                showUnsupportedPreview(info.reason, data.url);
+            const base = getApiBase();
+            const pEndpoint = base ? (base + "/api/preview") : "/preview";
+            const pUrl = pEndpoint + "?site=" + encodeURIComponent(data.site);
+            try {
+                const pr = await fetch(pUrl);
+                if (pr.status === 409) {
+                    const info = await pr.json().catch(() => ({}));
+                    showUnsupportedPreview(info.reason, data.url);
+                } else if (pr.ok) {
+                    $("previewOverlay").classList.remove("show");
+                    $("preview").src = pUrl;
+                } else {
+                    showUnsupportedPreview("preview returned status " + pr.status, data.url);
+                }
+            } catch {
+                showUnsupportedPreview("preview connection failed", data.url);
             }
-            else { $("previewOverlay").classList.remove("show"); $("preview").src = pUrl; }
 
             $("findings").replaceChildren(...data.findings.map(renderFinding));
         }
@@ -433,14 +672,15 @@
 
         async function renderPublic() {
             let items = [];
+            const base = getApiBase();
             try {
-                const r = await fetch("/public");
+                const r = await fetch(base ? (base + "/public") : "/public");
                 items = await r.json();
             } catch { items = []; }
             const box = $("publicFeed");
             box.replaceChildren();
-            if (items.length === 0) {
-                box.append(el("p", "status", "No public searches yet."));
+            if (!items || items.length === 0) {
+                box.append(el("p", "status", CATALOG.emptyStates.NO_PUBLIC_SEARCHES));
                 return;
             }
             for (const it of items) {
@@ -453,37 +693,65 @@
 
         async function check() {
             const site = $("url").value.trim();
-            if (!site) { $("status").textContent = "Type a website first."; return; }
-            $("status").textContent = "Analyzing " + site + " ...";
+            if (!site) {
+                $("status").textContent = "Type a website address first.";
+                return;
+            }
+            $("status").textContent = `Analyzing ${site} ...`;
             $("status").classList.add("loading");
             $("result").classList.add("hidden");
-            const res = await fetch("https://susorbus.vercel.app/api/check?site=" + encodeURIComponent(site));
-            const data = await res.json();
-            $("status").classList.remove("loading");
-            $("status").textContent = "";
-            if (data.error) { $("status").textContent = data.error; return; }
-            render(data);
-            clearTimeout(pubTimer);
-            $("pubNote").classList.remove("hidden");
-            pubTimer = setTimeout(async () => {
-                $("pubNote").classList.add("hidden");
-                await fetch("/publish", { method: "POST", body: JSON.stringify({ site: data.site, score: data.score, verdict: data.verdict }) });
-                renderPublic();
-            }, 20000);
-            let hist = [];
-            try { hist = JSON.parse(localStorage.getItem("history")) || []; } catch { hist = []; }
-            hist = hist.filter(h => h.site !== data.site);
-            hist.unshift({ site: data.site, score: data.score, verdict: data.verdict });
-            localStorage.setItem("history", JSON.stringify(hist.slice(0, 5)));
-            renderHistory();
-            const n = (parseInt(localStorage.getItem("checksRun")) || 0) + 1;
-            localStorage.setItem("checksRun", String(n));
-            $("checksRun").textContent = n;
+            $("checkBtn").disabled = true;
+
+            const base = getApiBase();
+            const checkUrl = (base ? (base + "/api/check") : "/check") + "?site=" + encodeURIComponent(site);
+
+            try {
+                const res = await fetch(checkUrl);
+                const data = await res.json();
+                $("status").classList.remove("loading");
+                $("checkBtn").disabled = false;
+                $("status").textContent = "";
+
+                if (data.error) {
+                    $("status").textContent = data.error;
+                    return;
+                }
+
+                render(data);
+
+                clearTimeout(pubTimer);
+                $("pubNote").classList.remove("hidden");
+                pubTimer = setTimeout(async () => {
+                    $("pubNote").classList.add("hidden");
+                    const pubEndpoint = base ? (base + "/publish") : "/publish";
+                    await fetch(pubEndpoint, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ site: data.site, score: data.score, verdict: data.verdict })
+                    }).catch(() => {});
+                    renderPublic();
+                }, 20000);
+
+                let hist = [];
+                try { hist = JSON.parse(localStorage.getItem("history")) || []; } catch { hist = []; }
+                hist = hist.filter(h => h.site !== data.site);
+                hist.unshift({ site: data.site, score: data.score, verdict: data.verdict });
+                localStorage.setItem("history", JSON.stringify(hist.slice(0, 5)));
+                renderHistory();
+
+                const n = (parseInt(localStorage.getItem("checksRun")) || 0) + 1;
+                localStorage.setItem("checksRun", String(n));
+                $("checksRun").textContent = n;
+            } catch (err) {
+                $("status").classList.remove("loading");
+                $("checkBtn").disabled = false;
+                $("status").textContent = "Connection error: could not contact scanner service.";
+            }
         }
 
         $("modeBtn").addEventListener("click", () => {
             const nerd = document.body.classList.toggle("nerd");
-            $("modeBtn").textContent = nerd ? "nerd mode: on" : "nerd mode: off";
+            $("modeBtn").textContent = nerd ? CATALOG.ui.BUTTON_NERD_ON : CATALOG.ui.BUTTON_NERD_OFF;
         });
 
         $("pdfBtn").addEventListener("click", () => {
@@ -494,19 +762,19 @@
         $("themeBtn").addEventListener("click", () => {
             const light = document.body.classList.toggle("light");
             localStorage.setItem("theme", light ? "light" : "dark");
-            $("themeBtn").textContent = light ? "dark mode" : "light mode";
+            $("themeBtn").textContent = light ? CATALOG.ui.BUTTON_DARK_MODE : CATALOG.ui.BUTTON_LIGHT_MODE;
         });
 
         if (localStorage.getItem("theme") === "light") {
             document.body.classList.add("light");
-            $("themeBtn").textContent = "dark mode";
+            $("themeBtn").textContent = CATALOG.ui.BUTTON_DARK_MODE;
         }
 
         $("copyBtn").addEventListener("click", () => {
             const text = $("verdict").textContent + " — " + $("scoreNum").textContent + "/100 — " + $("meta").textContent;
             navigator.clipboard.writeText(text).then(() => {
-                $("copyBtn").textContent = "copied!";
-                setTimeout(() => { $("copyBtn").textContent = "copy result"; }, 1500);
+                $("copyBtn").textContent = CATALOG.ui.BUTTON_COPIED;
+                setTimeout(() => { $("copyBtn").textContent = CATALOG.ui.BUTTON_COPY; }, 1500);
             });
         });
 

@@ -1,0 +1,24 @@
+{
+  "name": "sus-or-bus",
+  "version": "2.0.0",
+  "description": "Evidence-based website safety, privacy, and risk analyzer",
+  "main": "sus-or-bus/server.js",
+  "scripts": {
+    "start": "node sus-or-bus/server.js",
+    "test": "node --test test/**/*.test.js",
+    "validate:kb": "node bin/validate-kb.js"
+  },
+  "keywords": [
+    "security",
+    "privacy",
+    "scanner",
+    "ssrf-protection",
+    "heuristics"
+  ],
+  "author": "Tejus Bhasin",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+
