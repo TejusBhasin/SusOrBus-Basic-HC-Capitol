@@ -6,165 +6,206 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sus or Bus</title>
     <meta name="description" content="Sus or Bus — check any link for scams, phishing, and sketchy patterns before you click.">
-    <meta name="theme-color" content="#0b0f14">
-    <meta property="og:title" content="Sus or Bus">
-    <meta property="og:description" content="Is that link safe to click? Find out before you find out.">
+    <meta name="theme-color" content="#FCFBFF">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-            --bg: #0b0f14;
-            --panel: #161b22;
-            --border: #30363d;
-            --text: #e6e6e6;
-            --muted: #8b949e;
-            --code: #a5d6ff;
-            --overlay-bg: #000;
-            --overlay-text: #fff;
+            --bg: #FCFBFF;
+            --panel: #FFFFFF;
+            --border: #E5E5EB;
+            --text: #262626;
+            --muted: #777780;
+            --faint: #A9A9B4;
+            --idle: #F3F3F6;
+            --accent: #E95550;
+            --accent-dark: #D6443F;
+            --good: #3FA97C;
+            --mid: #F5A623;
+            --bad: #E95550;
+            --code: #7C3AED;
+            --shadow: 0 12px 32px rgba(38, 38, 38, .08);
+            --shadow-sm: 0 2px 8px rgba(38, 38, 38, .06);
+            --overlay-bg: rgba(255, 255, 255, .94);
+            --overlay-text: #262626;
+            --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         }
-        body.light {
-            --bg: #f5f7fa;
-            --panel: #ffffff;
-            --border: #d0d7de;
-            --text: #1f2328;
-            --muted: #57606a;
-            --code: #0550ae;
-            --overlay-bg: #e9ecef;
-            --overlay-text: #1f2328;
+        body.dark {
+            --bg: #0E0E13;
+            --panel: #18181F;
+            --border: #2C2C36;
+            --text: #EDEDF0;
+            --muted: #9C9CA6;
+            --faint: #62626C;
+            --idle: #22222B;
+            --accent: #F26E69;
+            --accent-dark: #F3837E;
+            --good: #4CC38A;
+            --mid: #F5A623;
+            --bad: #F26E69;
+            --code: #B79AFF;
+            --shadow: 0 14px 36px rgba(0, 0, 0, .5);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, .4);
+            --overlay-bg: rgba(14, 14, 19, .94);
+            --overlay-text: #EDEDF0;
         }
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: var(--sans);
             min-height: 100vh;
-            padding: 24px;
+            -webkit-font-smoothing: antialiased;
         }
-        .card { width: 100%; max-width: 760px; margin: 40px auto; }
-        h1 { font-size: 44px; text-align: center; letter-spacing: 2px; margin-bottom: 6px; }
-        h1 .sus { color: #ff4757; }
-        h1 .bus { color: #2ed573; }
-        .tagline { text-align: center; color: var(--muted); margin-bottom: 28px; }
-        .search { display: flex; gap: 10px; margin-bottom: 28px; }
-        input {
-            flex: 1;
-            padding: 14px 16px;
-            font-size: 16px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--panel);
-            color: var(--text);
-            outline: none;
+        button { font-family: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+        .hidden { display: none !important; }
+        .topline { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: #241E1A; z-index: 60; }
+        .glow {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background:
+                radial-gradient(620px 420px at 50% 20%, rgba(148, 120, 250, .14), transparent 70%),
+                radial-gradient(500px 360px at 50% 42%, rgba(120, 160, 255, .08), transparent 70%);
         }
+        .wrap { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: 26px 20px 140px; }
 
+        .topbar { position: relative; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 44px; }
+        .ctl-wrap { position: relative; }
+        .ctl {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+            padding: 7px 12px; font-size: 12.5px; font-weight: 600; color: var(--text);
+            box-shadow: var(--shadow-sm); transition: border-color .15s;
+        }
+        .ctl:hover { border-color: var(--faint); }
+        .ctl svg { flex: 0 0 auto; }
+        .ctl-square { padding: 7px; }
+        .ctl .chev { color: var(--muted); }
+
+        .descriptor {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            margin-bottom: 14px; color: var(--muted);
+            font-family: var(--mono); font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+        }
+        .wordmark { text-align: center; font-size: 42px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+        .w-sus { color: #E95550; }
+        .w-or { color: #A3A3A8; }
+        .w-bus { color: #50B98A; }
+        .subtitle { text-align: center; color: var(--muted); font-size: 13.5px; line-height: 1.65; max-width: 400px; margin: 12px auto 0; }
+
+        .card {
+            position: relative; width: 430px; max-width: 100%; margin: 30px auto 0;
+            background: var(--panel); border: 1px solid var(--border); border-radius: 13px;
+            box-shadow: var(--shadow); padding: 14px;
+        }
+        .tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab {
+            flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 10px; border-radius: 8px; background: var(--idle); color: var(--muted);
+            font-size: 12px; font-weight: 600; transition: background .15s, color .15s;
+        }
+        .tab:hover { color: var(--text); }
+        .tab.active { background: #171717; color: #fff; }
+        body.dark .tab.active { background: #EDEDF0; color: #17171C; }
+        .input-area {
+            display: block; width: 100%; height: 95px; resize: vertical;
+            padding: 10px 12px; font-family: var(--mono); font-size: 12.5px; color: var(--text);
+            background: var(--panel); border: 1px solid var(--border); border-radius: 6px; outline: none;
+        }
+        .input-area::placeholder { color: var(--faint); }
+        .input-area:focus { border-color: var(--faint); }
+        .attach-row { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+        .attach-btn {
+            display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted);
+            border: 1px dashed var(--border); border-radius: 8px; padding: 5px 10px;
+        }
+        .attach-btn:hover { color: var(--text); border-color: var(--faint); }
+        .attach-name { font-size: 11.5px; color: var(--muted); }
+        .run-btn {
+            width: 100%; height: 33px; margin-top: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            border-radius: 8px; font-size: 13px; font-weight: 700; color: #fff;
+            background: #C6C6CF; cursor: not-allowed; transition: background .15s;
+        }
+        .run-btn.ready { background: var(--accent); cursor: pointer; }
+        .run-btn.ready:hover { background: var(--accent-dark); }
+        body.dark .run-btn:not(.ready) { background: #3A3A44; }
+        .hint { margin-top: 9px; text-align: center; font-family: var(--mono); font-size: 10.5px; color: var(--faint); }
+
+        .fab {
+            position: fixed; right: 16px; bottom: 16px; width: 34px; height: 34px; border-radius: 50%;
+            background: var(--panel); border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            display: flex; align-items: center; justify-content: center; color: var(--muted); z-index: 50;
+            transition: transform .15s;
+        }
+        .fab:hover { transform: translateY(1px); }
+
+        .status { margin-top: 18px; text-align: center; color: var(--muted); font-size: 13px; }
+        .status.loading { animation: pulse 1s ease-in-out infinite; }
+        @keyframes pulse { 50% { opacity: .35; } }
+        #history, #publicFeed { margin-top: 22px; }
+        .h-item {
+            display: flex; justify-content: space-between; gap: 10px;
+            background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+            padding: 8px 12px; margin-bottom: 6px; font-size: 13px; cursor: pointer; box-shadow: var(--shadow-sm);
+        }
+        .h-item:hover { border-color: var(--faint); }
+        .h-score { font-weight: 700; white-space: nowrap; }
+        .feed-title { color: var(--muted); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; text-align: center; margin: 22px 0 8px; }
+
+        #result { margin-top: 34px; }
         .report-head { display: none; }
         .limitations { display: none; }
-        @media print {
-            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .search, .mode-btn, .status { display: none; }
-            .card { margin: 0; max-width: 100%; }
-            .report-head { display: block; font-size: 20px; font-weight: 800; letter-spacing: 2px; margin-bottom: 12px; }
-            .limitations { display: block; color: #555; font-size: 11px; border-top: 1px solid #999; padding-top: 8px; margin-top: 20px; }
-            #previewSection { display: none; }
-        }
-        input:focus { border-color: #ff4757; }
-        button {
-            padding: 14px 24px;
-            font-size: 16px;
-            font-weight: 700;
-            border: none;
-            border-radius: 12px;
-            background: #ff4757;
-            color: #fff;
-            cursor: default;
-        }
-        button:hover { background: #ff4757; }
-        input, button, .cat, .bar .seg { border-radius: 999px; }
-        .hidden { display: none; }
+        .result-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+        .eyebrow { color: var(--muted); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+        .verdict { font-size: 32px; font-weight: 800; }
+        .verdict.bus { color: var(--good); }
+        .verdict.mid { color: var(--mid); }
+        .verdict.sus { color: var(--bad); }
+        .score-num { font-size: 60px; font-weight: 800; line-height: 1; }
+        .score-num.bus { color: var(--good); }
+        .score-num.mid { color: var(--mid); }
+        .score-num.sus { color: var(--bad); }
+        .meta { color: var(--muted); font-size: 12.5px; margin-top: 6px; word-break: break-all; }
+        .verdict-note { color: var(--muted); font-size: 11.5px; margin-top: 4px; }
+        .pub-note { margin: 0 0 16px; text-align: center; font-size: 12.5px; color: var(--muted); }
+        .pub-note .mode-btn { display: inline-flex; margin: 0 0 0 6px; padding: 4px 10px; font-size: 11.5px; }
 
-        .result-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
-        .eyebrow { color: var(--muted); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
-        .verdict { font-size: 36px; font-weight: 800; }
-        .verdict.bus { color: #2ed573; }
-        .verdict.mid { color: #ffa502; }
-        .verdict.sus { color: #ff4757; }
-        .score-num { font-size: 72px; font-weight: 800; line-height: 1; }
-        .score-num.bus { color: #2ed573; }
-        .score-num.mid { color: #ffa502; }
-        .score-num.sus { color: #ff4757; }
-        .meta { color: var(--muted); font-size: 14px; margin-top: 6px; word-break: break-all; }
-        .verdict-note { color: var(--muted); font-size: 12px; margin-top: 4px; }
+        .counts { display: flex; gap: 10px; margin-bottom: 12px; }
+        .count { flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
+        .count span { display: block; font-size: 24px; font-weight: 800; }
+        .count label { color: var(--muted); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+        .count.good span { color: var(--good); }
+        .count.warning span { color: var(--mid); }
+        .count.bad span { color: var(--bad); }
+        .legend { color: var(--muted); font-size: 11.5px; margin: -4px 0 14px; text-align: center; }
+        .bar { display: flex; gap: 2px; height: 12px; margin-bottom: 16px; }
+        .bar .seg { flex: 1; background: var(--idle); border-radius: 3px; transition: background .3s; }
+        .bar.bus .seg.on { background: var(--good); }
+        .bar.mid .seg.on { background: var(--mid); }
+        .bar.sus .seg.on { background: var(--bad); }
 
-        .counts { display: flex; gap: 10px; margin-bottom: 14px; }
-        .legend { color: var(--muted); font-size: 12px; margin: -6px 0 14px; text-align: center; }
-        .count {
-            flex: 1;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-        }
-        .count span { display: block; font-size: 28px; font-weight: 800; }
-        .count label { color: var(--muted); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
-        .count.good span { color: #2ed573; }
-        .count.warning span { color: #ffa502; }
-        .count.bad span { color: #ff4757; }
-
-        .bar { display: flex; gap: 2px; height: 14px; margin-bottom: 14px; }
-        .bar .seg { flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; transition: background 0.3s; }
-        .bar.bus .seg.on { background: #2ed573; }
-        .bar.mid .seg.on { background: #ffa502; }
-        .bar.sus .seg.on { background: #ff4757; }
-
+        .result-actions { display: flex; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
         .mode-btn {
-            display: block;
-            width: 100%;
-            margin-bottom: 20px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-weight: 600;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            background: var(--panel); border: 1px solid var(--border); color: var(--text);
+            font-weight: 600; font-size: 13px; border-radius: 9px; padding: 8px 14px; box-shadow: var(--shadow-sm);
         }
-        .mode-btn:hover { border-color: var(--border); background: var(--panel); }
+        .mode-btn:hover { border-color: var(--faint); }
 
-        section { margin-bottom: 24px; }
-        h2 {
-            font-size: 15px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 6px;
-        }
-
-        .finding {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-left: 4px solid;
-            border-radius: 12px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
-            font-size: 15px;
-            line-height: 1.5;
-        }
-        .finding.good { border-left-color: #2ed573; }
-        .finding.warning { border-left-color: #ffa502; }
-        .finding.bad { border-left-color: #ff4757; }
+        section { margin-bottom: 22px; }
+        h2 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+        .finding { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; font-size: 14px; line-height: 1.5; }
+        .finding.good { border-left-color: var(--good); }
+        .finding.warning { border-left-color: var(--mid); }
+        .finding.bad { border-left-color: var(--bad); }
         .f-head { margin-bottom: 4px; }
-        .badge { font-weight: 700; font-size: 12px; letter-spacing: 1px; margin-right: 8px; }
-        .finding.good .badge { color: #2ed573; }
-        .finding.warning .badge { color: #ffa502; }
-        .finding.bad .badge { color: #ff4757; }
-        .cat {
-            color: var(--muted);
-            font-size: 11px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 2px 8px;
-        }
+        .badge { font-weight: 700; font-size: 11px; letter-spacing: 1px; margin-right: 8px; }
+        .finding.good .badge { color: var(--good); }
+        .finding.warning .badge { color: var(--mid); }
+        .finding.bad .badge { color: var(--bad); }
+        .cat { color: var(--muted); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; }
         .f-title { font-weight: 700; margin-bottom: 4px; }
         .finding p { margin-top: 4px; }
         .nerd-text { display: none; color: var(--muted); }
@@ -173,95 +214,166 @@
         .nerd-only { display: none; }
         body.nerd .nerd-only { display: block; }
         #techBox ol { margin: 6px 0 12px 22px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+        .policy-url { color: #3B82F6; font-size: 13.5px; word-break: break-all; margin-top: 6px; display: block; }
+        body.dark .policy-url { color: #6EA8FE; }
 
-        .policy-url { color: #58a6ff; font-size: 14px; word-break: break-all; margin-top: 6px; }
-
-        details { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; }
-        summary { cursor: pointer; font-weight: 600; color: var(--text); }
-        pre {
-            margin-top: 10px;
-            max-height: 400px;
-            overflow: auto;
-            font-size: 12px;
-            line-height: 1.4;
-            color: var(--code);
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-
-        iframe {
-            width: 100%;
-            height: 320px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            background: #fff;
-        }
-
+        details { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; }
+        summary { cursor: pointer; font-weight: 600; }
+        pre { margin-top: 10px; max-height: 400px; overflow: auto; font-family: var(--mono); font-size: 12px; line-height: 1.4; color: var(--code); white-space: pre-wrap; word-break: break-all; }
+        iframe { width: 100%; height: 320px; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
         .preview-wrap { position: relative; }
         .preview-overlay {
-            position: absolute;
-            inset: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: var(--overlay-bg);
-            color: var(--overlay-text);
-            border-radius: 12px;
-            padding: 16px;
-            font-weight: 600;
-            text-align: center;
+            position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+            background: var(--overlay-bg); color: var(--overlay-text); border-radius: 10px; padding: 16px;
+            font-weight: 600; text-align: center;
         }
         .preview-overlay.show { display: flex; }
-        .overlay-link { color: var(--overlay-text); margin-left: 6px; }
+        .overlay-link { color: var(--accent); margin-left: 6px; }
 
-        #history { max-width: 760px; margin: 0 auto 16px; }
-        #history .h-item { display: flex; justify-content: space-between; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; }
-        #history .h-score { font-weight: 700; }
-        #publicFeed { max-width: 760px; margin: 0 auto 16px; }
-        #publicFeed .h-item { display: flex; justify-content: space-between; gap: 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; margin-bottom: 6px; font-size: 13px; }
-        #publicFeed .h-score { font-weight: 700; }
-        .feed-title { color: var(--muted); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 8px; }
-        .status.loading { animation: pulse 1s ease-in-out infinite; }
-        @keyframes pulse { 50% { opacity: 0.35; } }
-        .status { text-align: center; color: var(--muted); }
+        .popover {
+            position: absolute; top: calc(100% + 8px); left: 0; min-width: 190px;
+            background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+            box-shadow: var(--shadow); padding: 6px; z-index: 80;
+        }
+        .popover.right { left: auto; right: 0; }
+        .pop-label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 6px 10px 4px; }
+        .pop-item { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; font-size: 13px; border-radius: 8px; color: var(--text); }
+        .pop-item:hover { background: var(--idle); }
+        .pop-item .tick { width: 14px; color: var(--accent); visibility: hidden; display: inline-flex; }
+        .pop-item.on .tick { visibility: visible; }
+        .pop-sep { height: 1px; background: var(--border); margin: 6px 4px; }
+        .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 8px 10px; font-size: 13px; border-radius: 8px; color: var(--text); text-align: left; }
+        .settings-row:hover { background: var(--idle); }
+        .settings-row:disabled { opacity: .45; cursor: not-allowed; }
+        .switch { position: relative; width: 36px; height: 20px; flex: 0 0 auto; }
+        .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+        .switch .track { position: absolute; inset: 0; background: var(--idle); border: 1px solid var(--border); border-radius: 999px; transition: .15s; }
+        .switch .knob { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: #fff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: .15s; }
+        .switch input:checked ~ .track { background: var(--accent); border-color: var(--accent); }
+        .switch input:checked ~ .knob { left: 18px; }
+
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(20, 16, 28, .35); display: flex; align-items: center; justify-content: center; z-index: 90; padding: 20px; }
+        .modal { position: relative; width: 340px; max-width: 100%; background: var(--panel); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); padding: 22px; }
+        .modal h3 { font-size: 17px; margin-bottom: 6px; }
+        .modal .note { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-bottom: 14px; }
+        .field { margin-bottom: 12px; }
+        .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+        .field input { width: 100%; padding: 9px 11px; font-size: 13.5px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); outline: none; }
+        .field input:focus { border-color: var(--accent); }
+        .modal-x { position: absolute; top: 12px; right: 12px; color: var(--muted); padding: 4px; }
+        .avatar { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 800; }
+
         @media (max-width: 600px) {
-            body { padding: 12px; }
-            h1 { font-size: 30px; }
-            .score-num { font-size: 52px; }
-            .search { flex-direction: column; }
+            .wrap { padding: 18px 14px 120px; }
+            .topbar { margin-bottom: 34px; gap: 6px; }
+            .ctl { font-size: 12px; padding: 6px 10px; }
+            .wordmark { font-size: 33px; }
+            .subtitle { font-size: 13px; max-width: 320px; }
+            .card { margin-top: 24px; padding: 12px; }
+            .tabs { gap: 4px; }
+            .tab { padding: 5px 8px; font-size: 11.5px; }
             .result-top { flex-direction: column; gap: 10px; }
+            .score-num { font-size: 48px; }
+        }
+        @media print {
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .topline, .glow, .topbar, .card, .fab, .status, #history, #publicFeed, .feed-title, .result-actions, .pub-note { display: none !important; }
+            .wrap { max-width: 100%; padding: 0; }
+            #result { margin-top: 0; }
+            .report-head { display: block; font-size: 18px; font-weight: 800; letter-spacing: 2px; margin-bottom: 12px; }
+            .limitations { display: block; color: #555; font-size: 11px; border-top: 1px solid #999; padding-top: 8px; margin-top: 20px; }
+            #previewSection { display: none; }
         }
     </style>
 </head>
 
 <body>
-    <div class="card">
-        <h1><span class="sus">SUS</span> or <span class="bus">BUS</span></h1>
-        <p class="tagline">Is that link safe to click? Find out before you find out.</p>
-        <div class="search">
-            <input id="url" placeholder="Paste a link... e.g. example.com" />
-            <button onclick="check()">Check</button>
-        </div>
+    <div class="topline"></div>
+    <div class="glow"></div>
+
+    <main class="wrap">
+        <header class="topbar">
+            <div class="ctl-wrap">
+                <button class="ctl" id="langBtn" aria-haspopup="menu" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <span id="langLabel">English</span>
+                    <svg class="chev" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="popover hidden" id="langMenu" role="menu"></div>
+            </div>
+            <div class="ctl-wrap">
+                <button class="ctl" id="accountBtn">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span id="accountLabel">Create an account</span>
+                </button>
+                <div class="popover hidden" id="accountMenu"></div>
+            </div>
+            <div class="ctl-wrap">
+                <button class="ctl ctl-square" id="settingsBtn" aria-label="Settings">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+                <div class="popover hidden right" id="settingsMenu">
+                    <p class="pop-label">Settings</p>
+                    <div class="settings-row"><span>Nerd mode</span><label class="switch"><input type="checkbox" id="nerdSwitch"><span class="track"></span><span class="knob"></span></label></div>
+                    <div class="pop-sep"></div>
+                    <button class="settings-row" id="pdfRow" disabled><span>Export PDF</span></button>
+                </div>
+            </div>
+            <button class="ctl" id="themeBtn" aria-pressed="false">
+                <span id="themeIcon"></span>
+                <span id="themeLabel">Dark</span>
+            </button>
+        </header>
+
+        <p class="descriptor">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            web safety analyzer
+        </p>
+        <h1 class="wordmark"><span class="w-sus">Sus</span> <span class="w-or">or</span> <span class="w-bus">Bus</span></h1>
+        <p class="subtitle" id="subtitle">Paste a link, HTML, code, an email, or any text. Get an instant safety verdict — is it bussin or sus?</p>
+
+        <section class="card" aria-label="Safety analyzer">
+            <div class="tabs" id="tabs" role="tablist" aria-label="Input type"></div>
+            <textarea id="input" class="input-area" spellcheck="false" placeholder="https://example.com" aria-label="Content to check"></textarea>
+            <p id="attachRow" class="attach-row hidden">
+                <button class="attach-btn" id="attachBtn">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                    Attach a text file
+                </button>
+                <span id="attachName" class="attach-name"></span>
+            </p>
+            <input type="file" id="fileInput" class="hidden" accept=".txt,.text,.html,.htm,.eml,.md,.markdown,.json,.csv,.log,.xml,.css,.js,.ts,.py,.rtf">
+            <button class="run-btn" id="runBtn" disabled>
+                <span id="runIcon"></span>
+                <span id="runLabel">Run the check</span>
+            </button>
+            <p class="hint">⌘/Ctrl + Enter</p>
+        </section>
+
+        <p id="status" class="status">Pick a mode, paste something sketchy, and run the check.</p>
         <div id="history"></div>
         <p class="feed-title">public searches</p>
         <div id="publicFeed"></div>
+
         <div id="result" class="hidden">
             <div class="report-head">SUS OR BUS — SITE SAFETY REPORT</div>
             <div class="result-top">
                 <div>
-                    <p class="eyebrow">New check</p>
+                    <p class="eyebrow">Result</p>
                     <div id="verdict" class="verdict"></div>
                     <p class="verdict-note">automated heuristic scan — no findings never means guaranteed safe</p>
                     <p id="meta" class="meta"></p>
                 </div>
                 <div>
                     <div id="scoreNum" class="score-num"></div>
-                    <button id="copyBtn" class="mode-btn" style="width:auto; padding:6px 12px; font-size:12px;">copy result</button> <button id="newScanBtn" class="mode-btn" style="width:auto; padding:6px 12px; font-size:12px;">new scan</button>
+                    <div class="result-actions" style="margin: 10px 0 0;">
+                        <button id="copyBtn" class="mode-btn">copy result</button>
+                        <button id="newScanBtn" class="mode-btn">new scan</button>
+                    </div>
                 </div>
             </div>
 
-            <p id="pubNote" class="status hidden">This search will be public in 20s.
-            <button id="hideBtn" class="mode-btn" style="width:auto;padding:6px 12px;font-size:12px;">Don't show in public searches</button></p>
+            <p id="pubNote" class="pub-note hidden">This search will be public in 20s. <button id="hideBtn" class="mode-btn">Don't show in public searches</button></p>
 
             <div class="counts">
                 <div class="count good"><span id="cGood">0</span><label>good</label></div>
@@ -273,10 +385,12 @@
 
             <div class="bar" id="bar"></div>
 
-            <button id="modeBtn" class="mode-btn">nerd mode: off</button>
-            <button id="pdfBtn" class="mode-btn">export PDF</button>
-            <button id="themeBtn" class="mode-btn">light mode</button>
-            <section>
+            <div class="result-actions">
+                <button id="modeBtn" class="mode-btn">nerd mode: off</button>
+                <button id="pdfBtn" class="mode-btn">export PDF</button>
+            </div>
+
+            <section id="termsSection">
                 <h2>terms &amp; privacy check</h2>
                 <div id="termsBox"></div>
             </section>
@@ -289,7 +403,7 @@
             <section>
                 <h2>source code</h2>
                 <details>
-                    <summary>Show fetched HTML</summary>
+                    <summary>Show fetched content</summary>
                     <pre id="source"></pre>
                 </details>
             </section>
@@ -307,16 +421,54 @@
                 <div id="findings"></div>
             </section>
 
-            <p class="limitations">This report summarizes automated heuristic checks on the fetched page. "No threats detected" is NOT a guarantee of safety. Preview availability depends on the target site's own embedding policy.</p>
+            <p class="limitations">This report summarizes automated heuristic checks. "No threats detected" is NOT a guarantee of safety. Preview availability depends on the target site's own embedding policy.</p>
         </div>
+    </main>
 
-        <p id="status" class="status">Paste a link above and hit Check to run your first scan.</p>
+    <button class="fab" id="fab" aria-label="Scroll to result">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+
+    <div class="modal-backdrop hidden" id="accountModal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="accTitle">
+            <button class="modal-x" id="accClose" aria-label="Close">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <h3 id="accTitle">Create an account</h3>
+            <p class="note">This build keeps your account only in this browser — no password, no server, nothing leaves your device.</p>
+            <div class="field"><label for="accName">Name</label><input id="accName" autocomplete="name"></div>
+            <div class="field"><label for="accEmail">Email</label><input id="accEmail" type="email" autocomplete="email"></div>
+            <button class="run-btn ready" id="accSave" style="margin-top: 4px;">Create account</button>
+        </div>
     </div>
 
     <script>
         const $ = id => document.getElementById(id);
-        let pubTimer = null;
-
+        const SVG_OPEN = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\">";
+        const ICONS = {
+            globe: SVG_OPEN + "<circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"/><path d=\"M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z\"/></svg>",
+            code: SVG_OPEN + "<polyline points=\"16 18 22 12 16 6\"/><polyline points=\"8 6 2 12 8 18\"/></svg>",
+            brackets: SVG_OPEN + "<polyline points=\"16 18 22 12 16 6\"/><polyline points=\"8 6 2 12 8 18\"/></svg>",
+            mail: SVG_OPEN + "<path d=\"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z\"/><polyline points=\"22,6 12,13 2,6\"/></svg>",
+            doc: SVG_OPEN + "<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/><line x1=\"16\" y1=\"13\" x2=\"8\" y2=\"13\"/><line x1=\"16\" y1=\"17\" x2=\"8\" y2=\"17\"/></svg>",
+            scales: SVG_OPEN + "<line x1=\"12\" y1=\"3\" x2=\"12\" y2=\"21\"/><line x1=\"4\" y1=\"21\" x2=\"20\" y2=\"21\"/><path d=\"M12 5l-6 3 6-3 6 3\"/><path d=\"M6 8l-2.5 6a3 3 0 0 0 5 0L6 8z\"/><path d=\"M18 8l-2.5 6a3 3 0 0 0 5 0L18 8z\"/></svg>",
+            file: SVG_OPEN + "<path d=\"M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z\"/><polyline points=\"13 2 13 9 20 9\"/></svg>",
+            sparkle: SVG_OPEN + "<path d=\"M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z\"/></svg>",
+            chevron: SVG_OPEN + "<polyline points=\"6 9 12 15 18 9\"/></svg>",
+            shield: SVG_OPEN + "<path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"/></svg>",
+            user: SVG_OPEN + "<path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/></svg>",
+            moon: SVG_OPEN + "<path d=\"M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z\"/></svg>",
+            sun: SVG_OPEN + "<circle cx=\"12\" cy=\"12\" r=\"5\"/><line x1=\"12\" y1=\"1\" x2=\"12\" y2=\"3\"/><line x1=\"12\" y1=\"21\" x2=\"12\" y2=\"23\"/><line x1=\"4.22\" y1=\"4.22\" x2=\"5.64\" y2=\"5.64\"/><line x1=\"18.36\" y1=\"18.36\" x2=\"19.78\" y2=\"19.78\"/><line x1=\"1\" y1=\"12\" x2=\"3\" y2=\"12\"/><line x1=\"21\" y1=\"12\" x2=\"23\" y2=\"12\"/><line x1=\"4.22\" y1=\"19.78\" x2=\"5.64\" y2=\"18.36\"/><line x1=\"18.36\" y1=\"5.64\" x2=\"19.78\" y2=\"4.22\"/></svg>",
+            check: SVG_OPEN + "<polyline points=\"20 6 9 17 4 12\"/></svg>"
+        };
+        function icon(name, size) {
+            const w = document.createElement("span");
+            w.innerHTML = ICONS[name];
+            const svg = w.firstElementChild;
+            svg.setAttribute("width", size || 14);
+            svg.setAttribute("height", size || 14);
+            return svg;
+        }
         function el(tag, cls, text) {
             const e = document.createElement(tag);
             if (cls) e.className = cls;
@@ -324,207 +476,295 @@
             return e;
         }
 
-        function scoreClass(score) {
-            return score >= 70 ? "bus" : score >= 40 ? "mid" : "sus";
+        const state = { mode: "url", lang: localStorage.getItem("lang") || "en" };
+        const MODES = {
+            url: { label: "URL", icon: "globe", validate: v => cleanTarget(v) !== "" },
+            html: { label: "HTML", icon: "code", validate: v => /<[a-z][\s\S]*>/i.test(v) },
+            code: { label: "Code", icon: "brackets", validate: v => v.trim().length >= 10 },
+            email: { label: "Email", icon: "mail", validate: v => v.includes("@") && v.trim().length >= 10 },
+            text: { label: "Text", icon: "doc", validate: v => v.trim().length >= 20 },
+            terms: { label: "Terms", icon: "scales", validate: v => v.trim().length >= 100 },
+            document: { label: "Document", icon: "file", validate: v => v.trim().length >= 20 }
+        };
+        const TAB_ORDER = ["url", "html", "code", "email", "text", "terms", "document"];
+
+        const I18N = {
+            en: { subtitle: "Paste a link, HTML, code, an email, or any text. Get an instant safety verdict — is it bussin or sus?", run: "Run the check",
+                ph: { url: "https://example.com", html: "Paste the page's HTML source here…", code: "Paste code to scan for sketchy patterns…", email: "Paste a raw email, headers included…", text: "Paste any text to check for scam patterns…", terms: "Paste terms of service or privacy policy text…", document: "Paste document text, or attach a file below…" } },
+            es: { subtitle: "Pega un enlace, HTML, código, un correo o cualquier texto. Recibe un veredicto de seguridad al instante: ¿es bussin o sus?", run: "Ejecutar el análisis",
+                ph: { url: "https://example.com", html: "Pega aquí el código fuente HTML…", code: "Pega el código que quieres revisar…", email: "Pega un correo completo, con sus cabeceras…", text: "Pega cualquier texto para revisarlo…", terms: "Pega el texto de términos o privacidad…", document: "Pega el texto del documento o adjunta un archivo…" } },
+            fr: { subtitle: "Collez un lien, du HTML, du code, un e-mail ou n'importe quel texte. Obtenez un verdict de sécurité instantané — bussin ou sus ?", run: "Lancer l'analyse",
+                ph: { url: "https://example.com", html: "Collez ici le code source HTML…", code: "Collez le code à analyser…", email: "Collez un e-mail brut, en-têtes inclus…", text: "Collez n'importe quel texte à vérifier…", terms: "Collez le texte de conditions ou de confidentialité…", document: "Collez le texte du document ou joignez un fichier…" } },
+            de: { subtitle: "Füge einen Link, HTML, Code, eine E-Mail oder einen beliebigen Text ein. Bekomme sofort ein Sicherheitsurteil — bussin oder sus?", run: "Prüfung starten",
+                ph: { url: "https://example.com", html: "Füge hier den HTML-Quelltext ein…", code: "Füge Code zum Prüfen ein…", email: "Füge eine rohe E-Mail mit Kopfzeilen ein…", text: "Füge einen beliebigen Text zur Prüfung ein…", terms: "Füge AGB- oder Datenschutztext ein…", document: "Füge Dokumenttext ein oder hänge eine Datei an…" } },
+            hi: { subtitle: "कोई लिंक, HTML, कोड, ईमेल या कोई भी टेक्स्ट पेस्ट करें। तुरंत सेफ्टी वर्डिक्ट पाएं — यह bussin है या sus?", run: "चेक चलाएं",
+                ph: { url: "https://example.com", html: "पेज का HTML सोर्स यहाँ पेस्ट करें…", code: "जाँच के लिए कोड पेस्ट करें…", email: "ईमेल उसके हेडर सहित पेस्ट करें…", text: "कोई भी टेक्स्ट पेस्ट करें…", terms: "टर्म्स या प्राइवेसी टेक्स्ट पेस्ट करें…", document: "डॉक्युमेंट टेक्स्ट पेस्ट करें या फ़ाइल जोड़ें…" } }
+        };
+        const LANGS = [["en", "English"], ["es", "Español"], ["fr", "Français"], ["de", "Deutsch"], ["hi", "हिन्दी"]];
+        function tr(key) { const d = I18N[state.lang] || I18N.en; return d[key] !== undefined ? d[key] : I18N.en[key]; }
+        function trPh(mode) { const d = I18N[state.lang] || I18N.en; return (d.ph && d.ph[mode]) || I18N.en.ph[mode]; }
+
+        function cleanTarget(raw) {
+            const host = String(raw || "").trim()
+                .replace(/^https?:\/\//i, "")
+                .replace(/\/.*$/, "")
+                .toLowerCase();
+            if (!/^[a-z0-9.-]+$/.test(host)) return "";
+            return host;
         }
+        function isValid() { return MODES[state.mode].validate($("input").value); }
 
-        const barEl = $("bar");
-        for (let i = 0; i < 100; i++) barEl.appendChild(el("div", "seg"));
+        const SCAM_WORDS = ["urgent", "winner", "congratulations", "verify your account", "bitcoin", "free money", "click here to claim"];
+        const URL_RE = /https?:\/\/[^\s<>"')\]]+/gi;
+        function extractLinks(text) { return (text.match(URL_RE) || []).map(u => u.replace(/[.,;!?]+$/, "")); }
+        function hostOf(u) { try { return new URL(u).hostname.toLowerCase(); } catch { return ""; } }
 
-        function renderFinding(f) {
-            const item = el("div", "finding " + f.level);
-            const head = el("div", "f-head");
-            head.append(el("span", "badge", f.level.toUpperCase()), el("span", "cat", f.category));
-            item.append(
-                head,
-                el("div", "f-title", f.title),
-                el("p", "simple-text", f.simple),
-                el("p", "nerd-text", f.nerd)
-            );
-            return item;
+        function scamFindings(low, add) {
+            const hits = SCAM_WORDS.filter(w => low.includes(w));
+            if (hits.length) add("bad", "content", "Scam Language Detected",
+                "This text uses phrases commonly found in scams: " + hits.join(", ") + ".",
+                "Matched keywords: " + hits.join(", "));
+            else add("good", "content", "No Scam Keywords",
+                "We didn't find the usual pressure tactics and scam phrases.",
+                "None of the tracked scam keywords matched.");
         }
-
-        async function render(data) {
-            $("result").classList.remove("hidden");
-            const cls = scoreClass(data.score);
-
-            const v = $("verdict");
-            v.textContent = data.verdict;
-            v.className = "verdict " + cls;
-
-            const s = $("scoreNum");
-            s.textContent = data.score;
-            s.className = "score-num " + cls;
-
-            $("meta").textContent = data.url + "  •  " + new Date(data.checkedAt).toLocaleString() + "  •  HTTP " + data.status;
-
-            $("cGood").textContent = data.counts.good;
-            $("cWarn").textContent = data.counts.warning;
-            $("cBad").textContent = data.counts.bad;
-
-            const bar = $("bar");
-            bar.className = "bar " + cls;
-            for (let i = 0; i < bar.children.length; i++) bar.children[i].classList.toggle("on", i < data.score);
-
-            const termsBox = $("termsBox");
-            termsBox.replaceChildren(...data.termsFindings.map(renderFinding));
-            if (data.policies.length > 0) {
-                for (const p of data.policies) {
-                    const a = el("a", "policy-url", p.kind + ": " + p.url);
-                    a.href = p.url;
-                    a.target = "_blank";
-                    a.rel = "noopener";
-                    termsBox.append(a);
-                }
-            } else {
-                termsBox.append(el("p", "policy-url", "No terms or privacy links detected on the page."));
-            }
-
-            $("source").textContent = data.source;
-
-            const tech = $("techBox");
-            tech.replaceChildren();
-            if (data.chain && data.chain.length > 1) {
-                tech.append(el("p", "policy-url", "Redirect chain (" + data.chain.length + " hops):"));
-                const ol = el("ol");
-                for (const u of data.chain) ol.append(el("li", null, u));
-                tech.append(ol);
-            }
-            const hk = data.headers ? Object.keys(data.headers) : [];
-            tech.append(el("p", "policy-url", hk.length ? "Security headers received:" : "No common security headers were sent by the server."));
-            if (hk.length) {
-                const pre = el("pre");
-                pre.textContent = hk.map(k => k + ": " + data.headers[k]).join("\n");
-                tech.append(pre);
-            }
-            tech.append(el("p", "policy-url", "Score formula: 100 - 30 x " + data.counts.bad + " (bad) - 10 x " + data.counts.warning + " (warning) = " + data.score + ", floor 0."));
-            tech.append(el("p", "policy-url", "Limitations: static heuristics on fetched HTML + headers. No findings never means guaranteed safe."));
-
-            const pUrl = "https://susorbus.vercel.app/api/preview?site=" + encodeURIComponent(data.site);
-            const pr = await fetch(pUrl);
-            if (pr.status === 409) {
-                const info = await pr.json().catch(() => ({}));
-                showUnsupportedPreview(info.reason, data.url);
-            }
-            else { $("previewOverlay").classList.remove("show"); $("preview").src = pUrl; }
-
-            $("findings").replaceChildren(...data.findings.map(renderFinding));
-        }
-
-        function showUnsupportedPreview(reason, pageUrl) {
-            $("result").appendChild($("previewSection"));
-            $("overlayMsg").textContent = "A live preview can't be embedded here because " + (reason || "this site blocks embedding") + ".";
-            $("overlayLink").href = pageUrl;
-            $("previewOverlay").classList.add("show");
-        }
-
-        function renderHistory() {
-            const box = $("history");
-            let items = [];
-            try { items = JSON.parse(localStorage.getItem("history")) || []; } catch { items = []; }
-            box.replaceChildren();
-            for (const it of items) {
-                const row = el("div", "h-item");
-                row.append(el("span", null, it.site), el("span", "h-score", it.score + " · " + it.verdict));
-                row.addEventListener("click", () => { $("url").value = it.site; check(); });
-                box.append(row);
-            }
-        }
-
-        async function renderPublic() {
-            let items = [];
-            try {
-                const r = await fetch("/public");
-                items = await r.json();
-            } catch { items = []; }
-            const box = $("publicFeed");
-            box.replaceChildren();
-            if (items.length === 0) {
-                box.append(el("p", "status", "No public searches yet."));
+        function linkFindings(links, add) {
+            if (!links.length) {
+                add("good", "content", "No Links Found",
+                    "We didn't find any web links in this content.",
+                    "Zero URLs matched the link extraction pattern.");
                 return;
             }
-            for (const it of items) {
-                const row = el("div", "h-item");
-                row.append(el("span", null, it.site), el("span", "h-score", it.score + " · " + it.verdict));
-                row.addEventListener("click", () => { $("url").value = it.site; check(); });
-                box.append(row);
+            const bad = [], warn = [];
+            for (const u of new Set(links)) {
+                const h = hostOf(u);
+                if (/^\d{1,3}(\.\d{1,3}){3}$/.test(h)) bad.push(u);
+                else if (u.startsWith("http://")) warn.push(u);
+                else if (h.includes("xn--")) warn.push(u);
+                else if ((h.match(/-/g) || []).length >= 2) warn.push(u);
             }
+            if (bad.length) add("bad", "reputation", "Suspicious IP Address Link",
+                bad.length + " link(s) point to raw IP addresses instead of domain names — a classic phishing trick.",
+                "IP hosts found: " + bad.slice(0, 3).join(", "));
+            if (warn.length) add("warning", "reputation", "Questionable Link Pattern",
+                warn.length + " link(s) look unusual: insecure http://, punycode, or hyphen-heavy addresses.",
+                "Flagged: " + warn.slice(0, 3).join(", "));
+            if (!bad.length && !warn.length) add("good", "reputation", "Links Look Normal",
+                "The links in this content use normal, human-looking web addresses.",
+                "Checked " + new Set(links).size + " unique link(s) for IP hosts, http://, punycode, and domain shape.");
         }
 
-        async function check() {
-            const site = $("url").value.trim();
-            if (!site) { $("status").textContent = "Type a website first."; return; }
-            $("status").textContent = "Analyzing " + site + " ...";
-            $("status").classList.add("loading");
-            $("result").classList.add("hidden");
-            const res = await fetch("https://susorbus.vercel.app/api/check?site=" + encodeURIComponent(site));
-            const data = await res.json();
-            $("status").classList.remove("loading");
-            $("status").textContent = "";
-            if (data.error) { $("status").textContent = data.error; return; }
-            render(data);
-            clearTimeout(pubTimer);
-            $("pubNote").classList.remove("hidden");
-            pubTimer = setTimeout(async () => {
-                $("pubNote").classList.add("hidden");
-                await fetch("/publish", { method: "POST", body: JSON.stringify({ site: data.site, score: data.score, verdict: data.verdict }) });
-                renderPublic();
-            }, 20000);
-            let hist = [];
-            try { hist = JSON.parse(localStorage.getItem("history")) || []; } catch { hist = []; }
-            hist = hist.filter(h => h.site !== data.site);
-            hist.unshift({ site: data.site, score: data.score, verdict: data.verdict });
-            localStorage.setItem("history", JSON.stringify(hist.slice(0, 5)));
-            renderHistory();
-            const n = (parseInt(localStorage.getItem("checksRun")) || 0) + 1;
-            localStorage.setItem("checksRun", String(n));
-            $("checksRun").textContent = n;
+        function analyzePastedHtml(html) {
+            const findings = [], terms = [];
+            const add = (l, c, t, s, n) => findings.push({ level: l, category: c, title: t, simple: s, nerd: n });
+            const low = html.toLowerCase();
+            if (/<input[^>]+type=["']password["']/i.test(html)) add("bad", "security", "Password Field Detected",
+                "This page asks for a password. Fake login forms are a classic phishing trick.",
+                "An input type=\"password\" element was present in the pasted HTML.");
+            else add("good", "security", "No Credential Fields",
+                "This page doesn't ask for a password, so it can't steal one from you here.",
+                "No password input elements were found in the pasted HTML.");
+            scamFindings(low, add);
+            if (low.includes("<form")) add("warning", "content", "Form Collects Your Data",
+                "This page has a form that collects information from you. Only submit it if you trust the site.",
+                "A form element was present.");
+            if (low.includes("<iframe")) add("warning", "code", "Embedded External Content",
+                "This page shows content from another site inside a frame, which can sometimes hide something malicious.",
+                "An iframe element was present.");
+            const scripts = (low.match(/<script[\s>]/g) || []).length;
+            if (scripts === 0) add("good", "code", "Minimal Client-Side Code",
+                "There's almost no code running on this page, which means little room for sneaky behavior.",
+                "Zero script elements were found.");
+            else if (scripts > 15) add("warning", "code", "Heavy Scripting",
+                "This page runs a lot of code. That's not automatically bad, but it gives more room for tracking.",
+                scripts + " script elements were found.");
+            const links = [];
+            for (const m of html.matchAll(/href=["']([^"']+)["']/gi)) {
+                if (/^https?:/i.test(m[1])) links.push(m[1]);
+            }
+            linkFindings(links, add);
+            if (/http-equiv=["']refresh["']/i.test(html)) add("warning", "code", "Meta Refresh Redirect",
+                "This page automatically sends visitors somewhere else, a trick sometimes used to bounce people to a malicious copy.",
+                "A meta http-equiv=\"refresh\" tag was present.");
+            const pol = { terms: null, privacy: null };
+            for (const m of html.matchAll(/<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
+                const hay = (m[1] + " " + m[2].replace(/<[^>]+>/g, " ")).toLowerCase();
+                if (!pol.terms && /terms|conditions|\btos\b/.test(hay)) pol.terms = m[1];
+                if (!pol.privacy && /privacy|data[ -]?policy/.test(hay)) pol.privacy = m[1];
+            }
+            terms.push(pol.terms
+                ? { level: "good", category: "content", title: "Terms Link Present",
+                    simple: "The HTML links to a Terms of Service. Open it and read how they handle your data.",
+                    nerd: "Matched href: " + pol.terms }
+                : { level: "warning", category: "content", title: "No Terms Link Found",
+                    simple: "We couldn't find a Terms of Service link in this HTML. Legitimate sites usually show one.",
+                    nerd: "No anchor matched the terms heuristics." });
+            terms.push(pol.privacy
+                ? { level: "good", category: "content", title: "Privacy Link Present",
+                    simple: "The HTML links to a Privacy Policy, so you can read what they collect.",
+                    nerd: "Matched href: " + pol.privacy }
+                : { level: "warning", category: "content", title: "No Privacy Link Found",
+                    simple: "We couldn't find a Privacy Policy link in this HTML.",
+                    nerd: "No anchor matched the privacy heuristics." });
+            return { findings, termsFindings: terms };
         }
 
-        $("modeBtn").addEventListener("click", () => {
-            const nerd = document.body.classList.toggle("nerd");
-            $("modeBtn").textContent = nerd ? "nerd mode: on" : "nerd mode: off";
-        });
-
-        $("pdfBtn").addEventListener("click", () => {
-            document.querySelector("details").open = true;
-            window.print();
-        });
-
-        $("themeBtn").addEventListener("click", () => {
-            const light = document.body.classList.toggle("light");
-            localStorage.setItem("theme", light ? "light" : "dark");
-            $("themeBtn").textContent = light ? "dark mode" : "light mode";
-        });
-
-        if (localStorage.getItem("theme") === "light") {
-            document.body.classList.add("light");
-            $("themeBtn").textContent = "dark mode";
+        function analyzePastedText(text) {
+            const findings = [];
+            const add = (l, c, t, s, n) => findings.push({ level: l, category: c, title: t, simple: s, nerd: n });
+            const low = text.toLowerCase();
+            scamFindings(low, add);
+            if (/password|passcode|credentials|sign in to confirm|verify your identity/i.test(text)) add("bad", "content", "Asks for Credentials or Verification",
+                "This text asks for passwords or account verification. Real companies never do this by message.",
+                "Matched credential-request patterns.");
+            if (/(urgent|immediately|act now|expires today|within 24 hours|limited time)/i.test(text)) add("warning", "content", "Time Pressure Tactics",
+                "This text pushes you to act fast — a classic trick to stop you from thinking.",
+                "Matched urgency phrases.");
+            if (/(gift card|itunes card|wire transfer|western union|moneygram)/i.test(text)) add("warning", "content", "Payment Red Flags",
+                "Gift cards and wire transfers are the scammer's favorite payment methods — they're untraceable.",
+                "Matched untraceable-payment keywords.");
+            linkFindings(extractLinks(text), add);
+            return { findings, termsFindings: [] };
         }
 
-        $("copyBtn").addEventListener("click", () => {
-            const text = $("verdict").textContent + " — " + $("scoreNum").textContent + "/100 — " + $("meta").textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                $("copyBtn").textContent = "copied!";
-                setTimeout(() => { $("copyBtn").textContent = "copy result"; }, 1500);
-            });
-        });
+        function analyzePastedEmail(raw) {
+            const findings = [];
+            const add = (l, c, t, s, n) => findings.push({ level: l, category: c, title: t, simple: s, nerd: n });
+            const sep = raw.search(/\n\s*\n/);
+            const head = sep === -1 ? "" : raw.slice(0, sep);
+            const body = sep === -1 ? raw : raw.slice(sep);
+            if (!head.trim()) {
+                add("warning", "content", "No Email Headers Included",
+                    "This looks like only the message body. Paste the full raw email (with headers) for a stronger check.",
+                    "No header block found before the first blank line.");
+            } else {
+                const from = (head.match(/^from:\s*(.+)$/im) || [])[1] || "";
+                const reply = (head.match(/^reply-to:\s*(.+)$/im) || [])[1] || "";
+                const fa = from.match(/@([^>\s]+)/), ra = reply.match(/@([^>\s]+)/);
+                if (reply && fa && ra && fa[1].toLowerCase() !== ra[1].toLowerCase()) add("bad", "security", "Reply-To Domain Mismatch",
+                    "Replies go to " + ra[1] + " but the message claims to be from " + fa[1] + " — a common spoofing trick.",
+                    "From domain: " + fa[1] + ", Reply-To domain: " + ra[1]);
+                else if (reply) add("good", "security", "Reply-To Matches From",
+                    "Replies go back to the same domain the message claims to be from.",
+                    "Reply-To domain matches the From domain.");
+                const spf = (head.match(/^received-spf:\s*(.+)$/im) || [])[1] || "";
+                const dkim = (head.toLowerCase().match(/dkim=(\w+)/) || [])[1] || "";
+                if (/fail/i.test(spf) || dkim === "fail") add("bad", "security", "Failed Authentication",
+                    "This email failed SPF/DKIM checks, meaning it likely did not come from where it claims.",
+                    "SPF: " + (spf || "none") + ", DKIM: " + (dkim || "none"));
+                else if (/pass/i.test(spf) || dkim === "pass") add("good", "security", "Authentication Passed",
+                    "SPF/DKIM checks passed, so this email really came from the claimed server.",
+                    "SPF: " + (spf || "none") + ", DKIM: " + (dkim || "none"));
+                else add("warning", "security", "No Authentication Evidence",
+                    "The pasted headers don't include SPF or DKIM results, so the sender can't be verified.",
+                    "No Received-SPF header and no dkim= result found.");
+            }
+            scamFindings(body.toLowerCase(), add);
+            if (/password|passcode|verify your (account|identity)|update your payment/i.test(body)) add("bad", "content", "Asks for Credentials or Payment",
+                "This email asks for passwords or payment details. Legitimate companies never do this by email.",
+                "Matched credential/payment request patterns in the body.");
+            if (/(urgent|immediately|act now|expires|within 24 hours|final notice)/i.test(body)) add("warning", "content", "Time Pressure Tactics",
+                "This email pushes you to act quickly before you have time to think.",
+                "Matched urgency phrases in the body.");
+            if (/filename=|content-disposition:\s*attachment/i.test(raw)) {
+                if (/\.(exe|scr|bat|js|vbs|ps1|zip)(\?|["'\s]|$)/i.test(raw)) add("bad", "content", "Dangerous Attachment",
+                    "This email carries an executable or archive attachment — never open unexpected ones.",
+                    "Attachment filename matched an executable/archive extension.");
+                else add("warning", "content", "Contains Attachments",
+                    "This email has an attachment. Unexpected attachments are the classic malware delivery trick.",
+                    "A filename= or attachment content-disposition was present.");
+            }
+            linkFindings(extractLinks(raw), add);
+            return { findings, termsFindings: [] };
+        }
 
-        renderHistory();
-        renderPublic();
+        function analyzePastedCode(code) {
+            const findings = [];
+            const add = (l, c, t, s, n) => findings.push({ level: l, category: c, title: t, simple: s, nerd: n });
+            const patterns = [
+                [/\beval\s*\(/, "Uses eval()", "eval() runs text as code at runtime — a favorite hiding spot for malware."],
+                [/new\s+Function\s*\(/, "Dynamic Code Generation", "Building code from strings at runtime makes it easy to hide intent."],
+                [/document\.cookie/, "Reads Your Cookies", "Cookie access is often used to steal session tokens."],
+                [/localStorage|sessionStorage/, "Uses Browser Storage", "Reading browser storage can expose saved tokens and personal data."],
+                [/\batob\s*\(/, "Base64 Decoding", "Decoding hidden strings at runtime is a common obfuscation trick."],
+                [/(fetch|XMLHttpRequest|navigator\.sendBeacon)/, "Makes Network Requests", "The code can phone home — check where it sends your data."]
+            ];
+            for (const [re, title, simple] of patterns) {
+                if (re.test(code)) add("warning", "code", title, simple, "Matched pattern: " + re.source);
+            }
+            if (/https?:\/\/\d{1,3}(\.\d{1,3}){3}/.test(code)) add("bad", "code", "Sends Data to a Raw IP Address",
+                "The code talks to a bare IP address instead of a domain — servers that hide usually have a reason.",
+                "Matched a URL with an IPv4 host.");
+            if (/[A-Za-z0-9+/=_-]{120,}/.test(code)) add("warning", "code", "Possible Obfuscation",
+                "Very long encoded-looking strings with no spaces are often hiding something.",
+                "Matched a 120+ character alphanumeric run.");
+            if (/\.(exe|dll|scr|bat|ps1)\b/i.test(code)) add("warning", "code", "References Executable Files",
+                "The code mentions Windows executables. Make sure you trust it before running anything.",
+                "Matched an executable filename extension.");
+            if (!findings.length) add("good", "code", "No Common Sketchy Code Patterns",
+                "We didn't find eval, hidden decoding, raw-IP requests, or executable references in this snippet.",
+                "Checked: eval, new Function, atob, cookie/storage access, raw-IP URLs, executable filenames.");
+            return { findings, termsFindings: [] };
+        }
 
-        $("url").addEventListener("keydown", e => { if (e.key === "Enter") check(); });
-        $("newScanBtn").addEventListener("click", () => {
-            $("result").classList.add("hidden");
-            $("url").value = "";
-            $("url").focus();
-        });
+        function analyzePastedTerms(text) {
+            const findings = [], terms = [];
+            findings.push({ level: "good", category: "content", title: "Terms Text Received",
+                simple: "We scanned the pasted text for common one-sided clauses.",
+                nerd: "Length: " + text.length + " characters." });
+            const clauses = [
+                [/binding arbitration|agree to arbitrate/i, "Forces Arbitration", "You may be giving up your right to sue or join a class action."],
+                [/waive.{0,40}class action|class action.{0,40}waive/i, "Class Action Waiver", "You'd have to fight problems alone instead of with other affected users."],
+                [/(sell|share|rent|trade).{0,40}(your data|personal information|user data)/i, "Sells or Shares Your Data", "Your information may be handed to third parties."],
+                [/(change|modify|update).{0,30}(at any time|without (prior )?notice)/i, "Unilateral Changes", "They can change the rules whenever they want, even after you signed up."],
+                [/terminat(e|ion).{0,30}(without cause|at any time|for any reason)/i, "Termination Without Cause", "They can cut you off at any moment, for any reason."],
+                [/liabilit(y|ies).{0,40}(limited|cap(ped)?|excluded|maximum)/i, "Liability Cap", "If they harm you, their responsibility is limited or excluded."],
+                [/non-?refundable|no refunds|all sales are final/i, "No Refunds", "Once you pay, that money is gone no matter what happens."],
+                [/(auto-?renew|automatic (renewal|billing)|until cancelled)/i, "Auto-Renewal", "Paid plans may renew and charge you again unless you cancel in time."],
+                [/indemnif(y|ication)/i, "You Indemnify Them", "You may be agreeing to cover their legal costs if something goes wrong."]
+            ];
+            let matched = 0;
+            for (const [re, title, simple] of clauses) {
+                if (re.test(text)) {
+                    matched++;
+                    terms.push({ level: "warning", category: "content", title: title,
+                        simple: simple, nerd: "Matched pattern: " + re.source });
+                }
+            }
+            if (/gdpr|ccpa|data protection|opt[- ]?out|30[- ]day (refund|money[- ]back)/i.test(text)) terms.push({ level: "good", category: "content", title: "Consumer-Friendly Clauses Mentioned",
+                simple: "The text mentions data-rights or opt-out language, which is a good sign.",
+                nerd: "Matched GDPR/CCPA/opt-out/refund-window keywords." });
+            if (!matched) terms.push({ level: "good", category: "content", title: "No Aggressive Clauses Detected",
+                simple: "We didn't find the usual one-sided clauses in this text.",
+                nerd: "None of the " + clauses.length + " tracked clause patterns matched." });
+            return { findings, termsFindings: terms };
+        }
 
-        $("hideBtn").addEventListener("click", () => {
-            clearTimeout(pubTimer);
-            $("pubNote").classList.add("hidden");
-        });
-    </script>
-</body>
+        function runLocalAnalysis(mode, raw) {
+            if (mode === "html") return analyzePastedHtml(raw);
+            if (mode === "email") return analyzePastedEmail(raw);
+            if (mode === "code") return analyzePastedCode(raw);
+            if (mode === "terms") return analyzePastedTerms(raw);
+            if (mode === "document") {
+                const low = raw.toLowerCase();
+                if (low.includes("<html") || /<[a-z][\s\S]*<\/[a-z]+>/i.test(raw)) return analyzePastedHtml(raw);
+                if (/^from\s*:/im.test(raw) && /\nsubject\s*:/im.test(raw)) return analyzePastedEmail(raw);
+                return analyzePastedText(raw);
+            }
+            return analyzePastedText(raw);
+        }
 
-</html>
+        function buildPastedResult(mode, raw, analysis) {
+            const counts = { good: 0, warning: 0, bad: 0 };
+            for (const f of analysis.findings.concat(analysis.termsFindings)) counts[f.level]++;
+            const score = Math.max(0, 100 - counts.bad * 30 - counts.warning * 10);
+            const verdict = score >= 70 ? "BUS" : score >= 40 ? "MILDLY SUS" : "SUS";
+            const flat = raw.trim().replace(/\s+/g, " ");
+            const label = MODES[mode].label.toLowerCase() + " · " + flat.slice(0, 28) + (flat.length > 28 ? "…" : "");
+            return {
+                site: label, url: label, status: 0, checkedAt: new Date().toISOString(),
+                score, verdict, counts, findings: analysis.findings, policies: [],
+                termsFindings: analysis.termsFindings, chain: [], headers: {},
+                source: raw.slice(0, 20000), pasted: true, mode
+            };
+        }
