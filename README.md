@@ -11,3 +11,5 @@ The original prototype for Sus Or Bus was vibe coded, but the algorithm and non-
 For reference, I did not transfer the CSS and design to VS Code and swap it to vercel because the Chrome extension and the iOS app rely on the same host for data coordination and datasets, making it hard to migrate.
 
 Just for a last piece of clarification, this is not vibe coded, and the mainstream site is only vibe coded in terms of design. 
+
+The Build-Base44-Bundle.js file helps sync base44 to this current repository for a different version of Sus Or Bus, which I am not planning on submitting to Capital. I do this because I want them to have the same backend algorithm, which is relatively simple. 
