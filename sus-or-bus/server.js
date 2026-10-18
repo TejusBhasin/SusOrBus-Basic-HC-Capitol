@@ -3,6 +3,7 @@ const http = require("http");
 const path = require("path");
 
 const SOURCE_LIMIT = 20000; // characters of HTML sent to the frontend
+const publicSearches = [];
 
 // ---------- helpers ----------
 
@@ -287,6 +288,23 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    if (url.pathname === "/publish" && req.method === "POST") {
+        let b = "";
+        req.on("data", c => b += c);
+        req.on("end", () => {
+            const it = JSON.parse(b);
+            if (!publicSearches.some(s => s.site === it.site)) publicSearches.unshift({ ...it, at: Date.now() });
+            res.end("{}");
+        });
+        return;
+    }
+
+    if (url.pathname === "/public") {
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify(publicSearches.slice(0, 20)));
+        return;
+    }
+
     res.statusCode = 404;
     res.end("Not found");
 });
@@ -294,3 +312,4 @@ const server = http.createServer(async (req, res) => {
 server.listen(3000, "127.0.0.1", () => {
     console.log("Server successfully running at http://127.0.0.1:3000");
 });
+           

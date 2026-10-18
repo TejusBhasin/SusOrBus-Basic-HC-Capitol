@@ -249,9 +249,12 @@
                 </div>
                 <div>
                     <div id="scoreNum" class="score-num"></div>
-                    <button id="copyBtn" class="mode-btn" style="width:auto; padding:6px 12px; font-size:12px;">copy result</button>
+                    <button id="copyBtn" class="mode-btn" style="width:auto; padding:6px 12px; font-size:12px;">copy result</button> <button id="newScanBtn" class="mode-btn" style="width:auto; padding:6px 12px; font-size:12px;">new scan</button>
                 </div>
             </div>
+
+            <p id="pubNote" class="status hidden">This search will be public in 20s.
+            <button id="hideBtn" class="mode-btn" style="width:auto;padding:6px 12px;font-size:12px;">Don't show in public searches</button></p>
 
             <div class="counts">
                 <div class="count good"><span id="cGood">0</span><label>good</label></div>
@@ -305,6 +308,7 @@
 
     <script>
         const $ = id => document.getElementById(id);
+        let pubTimer = null;
 
         function el(tag, cls, text) {
             const e = document.createElement(tag);
@@ -432,8 +436,15 @@
             $("status").textContent = "";
             if (data.error) { $("status").textContent = data.error; return; }
             render(data);
+            clearTimeout(pubTimer);
+            $("pubNote").classList.remove("hidden");
+            pubTimer = setTimeout(() => {
+                $("pubNote").classList.add("hidden");
+                fetch("/publish", { method: "POST", body: JSON.stringify({ site: data.site, score: data.score, verdict: data.verdict }) });
+            }, 20000);
             let hist = [];
             try { hist = JSON.parse(localStorage.getItem("history")) || []; } catch { hist = []; }
+            hist = hist.filter(h => h.site !== data.site);
             hist.unshift({ site: data.site, score: data.score, verdict: data.verdict });
             localStorage.setItem("history", JSON.stringify(hist.slice(0, 5)));
             renderHistory();
@@ -474,6 +485,16 @@
         renderHistory();
 
         $("url").addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+        $("newScanBtn").addEventListener("click", () => {
+            $("result").classList.add("hidden");
+            $("url").value = "";
+            $("url").focus();
+        });
+
+        $("hideBtn").addEventListener("click", () => {
+            clearTimeout(pubTimer);
+            $("pubNote").classList.add("hidden");
+        });
     </script>
 </body>
 
